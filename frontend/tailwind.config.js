@@ -5,6 +5,9 @@ module.exports = {
   ],
   theme: {
     extend: {},
+    fontFamily: {
+      generalsans: ['GeneralSans', 'sans-serif'],
+    },
   },
   plugins: [require("daisyui")],
 }

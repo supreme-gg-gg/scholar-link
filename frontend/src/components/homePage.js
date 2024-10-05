@@ -10,10 +10,10 @@ const HomePage = () => {
     };
 
     return (
-        <main className="flex-grow flex flex-col items-center justify-center p-4">
+        <main className="flex-grow flex flex-col items-center justify-center p-4 bg-white">
             <header className="text-center mb-8">
-                <h1 className="text-6xl font-bold mb-2">Explore connected papers in a visual graph</h1>
-                <p className="text-xl">To start, enter a paper identifier</p>
+                <h1 className="text-6xl font-semibold mb-2 text-black">Explore connected papers in a visual graph</h1>
+                <p className="text-xl text-black">To start, enter a paper identifier</p>
             </header>
             <div className="form-control w-full max-w-3xl">
                 <form onSubmit={handleRedirect} className="flex">
