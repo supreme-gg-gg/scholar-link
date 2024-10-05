@@ -42,8 +42,7 @@ def clean_text(text):
 
 def search_arxiv(query, start, max_results):
     base_url = "http://export.arxiv.org/api/query?"
-    encoded_query = urllib.parse.quote(f"all:{query}")
-    search_query = f"search_query=all:{encoded_query}&start={start}&max_results={max_results}"
+    search_query = f"search_query=all:{query}&start={start}&max_results={max_results}"
     for attempt in range(5):  # Try up to 5 times
         try:
             response = requests.get(base_url + search_query)
@@ -279,7 +278,7 @@ def process_papers(papers: list[Paper], start, neighbors):
 
     return {
         'matrix': matrix2,
-        'paper_names': [papers[result[i][0]].original_name for i in range(len(result))]
+        'paper_names': [papers[result[i][0]].name for i in range(len(result))]
     }
 
 @app.route('/search', methods=['POST'])
