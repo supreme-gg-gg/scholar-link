@@ -20,7 +20,7 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 
 class Paper:
-    def __init__(self, name, original_name, summary, pdf, published, authors, citations, link, cite_cnt=None):
+    def __init__(self, name, original_name, summary, pdf, published, authors, citations, link, index, cite_cnt=None):
         self.name = name
         self.original_name = original_name
         self.summary = summary
@@ -30,8 +30,10 @@ class Paper:
         self.citations = citations
         self.cite_cnt = cite_cnt
         self.link = link
+        self.shortcitations = []
+        self.shorttitle = name[:3]
         self.cited_by = []  # Papers that cite this paper
-        self.index = -1
+        self.index = index
 
     def to_dict(self):
         return {
@@ -42,6 +44,8 @@ class Paper:
             "cited_by": self.cite_cnt,
             "link": self.link,
             "index": self.index,
+            "shorttitle": self.shorttitle,
+            "shortcitations": self.shortcitations
         }
 
 def clean_text(text):
@@ -189,6 +193,7 @@ def create_papers(query, limit=100, batch_size=20):
             return None
         citations_json = extract_citations_from_text(text)
         paper.citations = [entry["title"] for entry in citations_json]
+        paper.shortcitations = [entry["title"][:3] for entry in citations_json]
         return paper
 
     # Calculate the number of batches
@@ -230,25 +235,25 @@ def process_papers(papers: list[Paper], start, neighbors):
     paper_dict = {}
     
     for i in range(len(papers)):
-        paper_dict[papers[i].name] = i
+        paper_dict[papers[i].shorttitle] = i
 
     for i in range(len(papers)):
-        for j in range(len(papers[i].citations)):
-            if papers[i].citations[j] in paper_dict:
-                papers[paper_dict[papers[i].citations[j]]].cited_by.append(papers[i].name)
+        for j in range(len(papers[i].shortcitations)):
+            if papers[i].shortcitations[j] in paper_dict:
+                papers[paper_dict[papers[i].shortcitations[j]]].cited_by.append(papers[i].shorttitle)
 
     for i in range(len(papers)):
-        paper_dict[papers[i].name] = [papers[i], i]
+        paper_dict[papers[i].shorttitle] = [papers[i], i]
     
     for i in range(len(papers)):
-        for j in range(len(papers[i].citations)):
-            if papers[i].citations[j] in paper_dict:
-                matrix[paper_dict[papers[i].citations[j]][1]][i] /= 2
-                matrix[i][paper_dict[papers[i].citations[j]][1]] /= 2
-                for k in range(j+1, len(papers[i].citations)):
-                    if papers[i].citations[k] in paper_dict:
-                        matrix[paper_dict[papers[i].citations[k]][1]][paper_dict[papers[i].citations[j]][1]] /= 2
-                        matrix[paper_dict[papers[i].citations[j]][1]][paper_dict[papers[i].citations[k]][1]] /= 2
+        for j in range(len(papers[i].shortcitations)):
+            if papers[i].shortcitations[j] in paper_dict:
+                matrix[paper_dict[papers[i].shortcitations[j]][1]][i] /= 2
+                matrix[i][paper_dict[papers[i].shortcitations[j]][1]] /= 2
+                for k in range(j+1, len(papers[i].shortcitations)):
+                    if papers[i].shortcitations[k] in paper_dict:
+                        matrix[paper_dict[papers[i].shortcitations[k]][1]][paper_dict[papers[i].shortcitations[j]][1]] /= 2
+                        matrix[paper_dict[papers[i].shortcitations[j]][1]][paper_dict[papers[i].shortcitations[k]][1]] /= 2
         
         for j in range(len(papers[i].cited_by)):
             if papers[i].cited_by[j] in paper_dict:
@@ -296,14 +301,17 @@ papers = []
 
 @app.route('/search', methods=['POST'])
 def search_papers():
+    global papers
     req = request.get_json()
     keyword = req.get("keyword")
     print(f"Received keyword: {keyword}")
     papers = create_papers(keyword, 10)
-    return papers
+    papers_json = [paper.to_dict() for paper in papers]
+    return jsonify(papers_json)
 
 @app.route('/graph', methods=['POST'])
 def make_graph():
+    print(papers)
     req = request.get_json()
     index= req.get("index")
     data = process_papers(papers, index, 10)
