@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const Graph = () => {
+const Graph = ({ papers, matrix }) => {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
@@ -10,38 +10,30 @@ const Graph = () => {
   const primaryColor = '#7884fc';  
   const primaryColorHover = '#4657FB';  
 
-  const data = {
-    "matrix": [
-      [-1, 1250.0, 2500.0, 5000.0],
-      [1250.0, -1, 1250.0, 2500.0],
-      [2500.0, 1250.0, -1, 625.0],
-      [5000.0, 2500.0, 625.0, -1]
-    ],
-    "paper_names": ["Paper A", "Paper D", "Paper B", "Paper C"]
-  };
-
   useEffect(() => {
+    if (!papers || !matrix || papers.length === 0 || matrix.length === 0) return;
+
     const width = 800;
     const height = 600;
     const nodeRadius = 40;
 
     // Create nodes
-    const newNodes = data.paper_names.map((name, index) => ({
+    const newNodes = papers.map((paper, index) => ({
       id: index,
-      name,
+      name: paper.title,
       x: Math.random() * (width - 2 * nodeRadius) + nodeRadius,
       y: Math.random() * (height - 2 * nodeRadius) + nodeRadius,
     }));
 
     // Create edges
     const newEdges = [];
-    for (let i = 0; i < data.matrix.length; i++) {
-      for (let j = i + 1; j < data.matrix[i].length; j++) {
-        if (data.matrix[i][j] !== -1) {
+    for (let i = 0; i < matrix.length; i++) {
+      for (let j = i + 1; j < matrix[i].length; j++) {
+        if (matrix[i][j] !== -1) {
           newEdges.push({
             source: i,
             target: j,
-            strength: data.matrix[i][j],
+            strength: matrix[i][j],
           });
         }
       }
@@ -86,14 +78,14 @@ const Graph = () => {
 
     const interval = setInterval(simulation, 50);
     return () => clearInterval(interval);
-  }, []);
+  }, [papers, matrix]);
 
   const handleWheel = (e) => {
     e.preventDefault();
-    const scaleFactor = e.deltaY > 0 ? 0.95 : 1.05; // Reduced zoom intensity
+    const scaleFactor = e.deltaY > 0 ? 0.95 : 1.05;
     setTransform(prev => ({
       ...prev,
-      scale: Math.max(0.1, Math.min(10, prev.scale * scaleFactor)), // Limit scale between 0.1 and 10
+      scale: Math.max(0.1, Math.min(10, prev.scale * scaleFactor)),
     }));
   };
 
@@ -121,7 +113,6 @@ const Graph = () => {
     document.addEventListener('mouseup', handleMouseUp);
   };
 
-  // Function to calculate line thickness
   const calculateLineThickness = (strength) => {
     const minThickness = 1;
     const maxThickness = 10;
