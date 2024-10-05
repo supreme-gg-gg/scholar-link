@@ -2,6 +2,19 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import Graph from './graph';
 
+const StreamlitEmbed = () => {
+  return (
+    <div style={{ width: '100%', height: '100%' }}>
+      <iframe
+        src="http://localhost:8501"
+        width="100%"
+        height="100%"
+        frameBorder="0"
+      ></iframe>
+    </div>
+  );
+};
+
 const GraphPage = () => {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
@@ -10,7 +23,8 @@ const GraphPage = () => {
   const [matrix, setMatrix] = useState([]);
   const [hoveredPaperIndex, setHoveredPaperIndex] = useState(null);
   const [originPaperIndex, setOriginPaperIndex] = useState(null);
-  const [allPapers, setAllPapers] = useState([]);  // Store all papers from initial search
+  const [allPapers, setAllPapers] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const location = useLocation();
   const paperRefs = useRef({});
@@ -21,79 +35,66 @@ const GraphPage = () => {
       const { papers, matrix } = location.state.graphData;
       setPapers(papers);
       setMatrix(matrix);
-      setAllPapers(papers);  // Store all papers from initial search
+      setAllPapers(papers);
       setOriginPaperIndex(location.state.originPaperIndex);
     }
   }, [location]);
 
-  useEffect(() => {
-    if (expandedPaper !== null && paperRefs.current[expandedPaper] && sidebarContentRef.current) {
-      const paperElement = paperRefs.current[expandedPaper];
-      const sidebarContent = sidebarContentRef.current;
-      
-      const paperTop = paperElement.offsetTop;
-      const sidebarScrollTop = sidebarContent.scrollTop;
-      const sidebarHeight = sidebarContent.clientHeight;
+  // ... (keep other useEffect and functions)
 
-      if (paperTop < sidebarScrollTop || paperTop > sidebarScrollTop + sidebarHeight) {
-        sidebarContent.scrollTo({
-          top: paperTop - sidebarHeight / 2,
-          behavior: 'smooth'
-        });
-      }
+const handleSetAsOrigin = async (index) => {
+  try {
+    const response = await fetch('http://localhost:5000/graph', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ index: allPapers[index].index }),
+    });
+    
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
     }
-  }, [expandedPaper]);
+    
+    const newGraphData = await response.json();
+    
+    setPapers(newGraphData.papers);
+    setMatrix(newGraphData.matrix);
 
-  const originColor = '#FF4500';  // Bright orange-red for the origin paper
+    // Find the index of the new origin paper
+    const newOriginIndex = newGraphData.papers.findIndex(paper => paper.index === allPapers[index].index);
+    setOriginPaperIndex(newOriginIndex !== -1 ? newOriginIndex : 0);
 
-  const handleSetAsOrigin = async (index) => {
-    try {
-      const response = await fetch('http://localhost:5000/graph', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ index: allPapers[index].index }),  // Use the original index from allPapers
-      });
-      
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      
-      const newGraphData = await response.json();
-      
-      // Update your state with the new graph data
-      setPapers(newGraphData.papers);
-      setMatrix(newGraphData.matrix);
-      setOriginPaperIndex(0);  // The new origin will always be at index 0 in the new set of papers
-      setExpandedPaper(null);  // Close any expanded paper view
-    } catch (error) {
-      console.error('Error regenerating graph:', error);
-      // Handle the error (e.g., show an error message to the user)
-    }
-  };
+    setExpandedPaper(null);
+  } catch (error) {
+    console.error('Error regenerating graph:', error);
+  }
+};
 
   const handleNodeClick = (index) => {
     setExpandedPaper(index);
-    setLeftSidebarOpen(true);  // Ensure the sidebar is open when a node is clicked
+    setLeftSidebarOpen(true);
   };
+
+  const toggleModal = () => {
+    setIsModalOpen(!isModalOpen);
+  };
+
 
   return (
     <div className="flex h-screen bg-white relative">
-      {/* Left Sidebar and Toggle Button */}
+      {/* Left Sidebar */}
       <div className="relative h-full flex flex-col">
         <div className={`bg-white transition-all duration-300 h-full ${leftSidebarOpen ? 'w-80' : 'w-0'} overflow-hidden shadow-lg flex flex-col`}>
-          {/* Navbar */}
           <div className="p-4 border-b">
             <h2 className="text-lg font-semibold text-black">Papers</h2>
           </div>
-          {/* Scrollable content */}
           <div ref={sidebarContentRef} className="flex-grow overflow-y-auto">
             <div className="p-4">
               <div className="space-y-4">
                 {papers.map((paper, index) => (
                   <div 
-                    key={paper.index}  // Use the original index as key
+                    key={paper.index}
                     ref={el => paperRefs.current[index] = el}
                     className={`card bg-white shadow-sm ${index === originPaperIndex ? 'border-2 border-orange-500' : ''} ${expandedPaper === index ? 'ring-2 ring-blue-500' : ''}`}
                     onMouseEnter={() => setHoveredPaperIndex(index)}
@@ -137,6 +138,7 @@ const GraphPage = () => {
             </div>
           </div>
         </div>
+        {/* Toggle button for left sidebar */}
         <button
           onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
           className={`absolute top-1/2 -translate-y-1/2 transition-all duration-300 bg-white hover:bg-white p-2 rounded-r-md shadow-lg ${leftSidebarOpen ? 'right-0 translate-x-full' : 'left-0'}`}
@@ -144,8 +146,15 @@ const GraphPage = () => {
           <span className="text-2xl text-primary">{leftSidebarOpen ? '◀' : '▶'}</span>
         </button>
       </div>
+
       {/* Main Content Area */}
-      <div className="flex-grow p-4 overflow-auto">
+      <div className="flex-grow p-4 overflow-auto relative">
+        <button
+          onClick={toggleModal}
+          className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+        >
+          Display Graph
+        </button>
         <Graph 
           papers={papers} 
           matrix={matrix} 
@@ -153,7 +162,21 @@ const GraphPage = () => {
           originPaperIndex={originPaperIndex}
           onNodeClick={handleNodeClick}
         />
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white w-11/12 h-5/6 rounded-lg overflow-hidden relative">
+              <button
+                onClick={toggleModal}
+                className="absolute top-4 left-1/2 transform -translate-x-1/2 hover:bg-blue-700 text-white btn-primary font-bold py-2 px-4 rounded z-10"
+              >
+                Display Graph
+              </button>
+              <StreamlitEmbed />
+            </div>
+          </div>
+        )}
       </div>
+
       {/* Right Sidebar (AI Chatbot) and Toggle Button */}
       <div className="relative h-full flex flex-col">
         <button
