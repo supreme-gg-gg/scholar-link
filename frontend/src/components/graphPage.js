@@ -15,6 +15,7 @@ const StreamlitEmbed = () => {
   );
 };
 
+
 const GraphPage = () => {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
@@ -25,6 +26,7 @@ const GraphPage = () => {
   const [originPaperIndex, setOriginPaperIndex] = useState(null);
   const [allPapers, setAllPapers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("Research Activity");
 
   const location = useLocation();
   const paperRefs = useRef({});
@@ -91,8 +93,14 @@ const handleSetAsOrigin = async (index) => {
     setLeftSidebarOpen(true);
   };
 
-  const toggleModal = () => {
-    setIsModalOpen(!isModalOpen);
+
+  const handleTabChange = (tabName) => {
+    setActiveTab(tabName);
+    if (tabName === "Force Directed") {
+      setIsModalOpen(false);
+    } else {
+      setIsModalOpen(true);
+    }
   };
 
   return (
@@ -157,7 +165,7 @@ const handleSetAsOrigin = async (index) => {
         {/* Toggle button for left sidebar */}
         <button
           onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-          className={`absolute top-1/2 -translate-y-1/2 bg-white hover:bg-white p-2 rounded-r-md shadow-lg ${leftSidebarOpen ? 'right-0 translate-x-full' : 'left-0'}`}
+          className={`absolute top-1/2 -translate-y-1/2 bg-white hover:bg-white p-2 rounded-r-md shadow-lg z-50 ${leftSidebarOpen ? 'right-0 translate-x-full' : 'left-0'}`}
         >
           <span className="text-2xl text-primary">{leftSidebarOpen ? '◀' : '▶'}</span>
         </button>
@@ -166,32 +174,62 @@ const handleSetAsOrigin = async (index) => {
       {/* Main Content Area */}
       <div className="flex-grow p-4 overflow-hidden relative">
         <div className="fixed top-16 left-0 right-0 flex justify-center z-10">
-          <button
-            onClick={toggleModal}
-            className="btn btn-primary"
-          >
-            Display Graph
-          </button>
+          <div role="tablist" className="tabs tabs-bordered">
+            <a 
+              className={`tab ${activeTab === "Force Directed" ? "tab-active text-black font-Fustat font-semibold" : ""}`}
+              onClick={() => handleTabChange("Force Directed")}
+            >
+              Force Directed
+            </a>
+            <a 
+              className={`tab ${activeTab === "Research Activity" ? "tab-active text-black font-Fustat font-semibold" : ""}`}
+              onClick={() => handleTabChange("Research Activity")}
+            >
+              Research Activity
+            </a>
+            <a 
+              className={`tab ${activeTab === "Tab 3" ? "tab-active text-black font-Fustat font-semibold" : ""}`}
+              onClick={() => handleTabChange("Tab 3")}
+            >
+              Tab 3
+            </a>
+          </div>
         </div>
         <div className="h-full overflow-auto">
-          <Graph 
-            papers={papers} 
-            matrix={matrix} 
-            hoveredPaperIndex={hoveredPaperIndex}
-            originPaperIndex={originPaperIndex}
-            onNodeClick={handleNodeClick}
-          />
+          {activeTab === "Force Directed" && (
+            <Graph 
+              papers={papers} 
+              matrix={matrix} 
+              hoveredPaperIndex={hoveredPaperIndex}
+              originPaperIndex={originPaperIndex}
+              onNodeClick={handleNodeClick}
+            />
+          )}
         </div>
         {isModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white w-11/12 h-5/6 rounded-lg overflow-hidden relative">
               <div className="absolute top-4 left-0 right-0 flex justify-center z-10">
-                <button
-                  onClick={toggleModal}
-                  className="btn btn-primary"
-                >
-                  Display Graph
-                </button>
+                <div role="tablist" className="tabs tabs-bordered">
+                  <a 
+                    className={`tab ${activeTab === "Force Directed" ? "tab-active text-black font-Fustat font-semibold" : ""}`}
+                    onClick={() => handleTabChange("Force Directed")}
+                  >
+                    Force Directed
+                  </a>
+                  <a 
+                    className={`tab ${activeTab === "Research Activity" ? "tab-active text-black font-Fustat font-semibold" : ""}`}
+                    onClick={() => handleTabChange("Research Activity")}
+                  >
+                    Research Activity
+                  </a>
+                  <a 
+                    className={`tab ${activeTab === "Tab 3" ? "tab-active text-black font-Fustat font-semibold" : ""}`}
+                    onClick={() => handleTabChange("Tab 3")}
+                  >
+                    Tab 3
+                  </a>
+                </div>
               </div>
               <StreamlitEmbed />
             </div>
