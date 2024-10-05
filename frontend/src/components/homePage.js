@@ -1,12 +1,38 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const HomePage = () => {
     const navigate = useNavigate();
+    const [keyword, setKeyword] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleRedirect = (e) => {
+    const handleSearch = async (e) => {
         e.preventDefault();
-        navigate('/results');
+        setIsLoading(true);
+
+        try {
+            const response = await fetch('/search', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ keyword }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const data = await response.json();
+            setIsLoading(false);
+            
+            // Navigate to results page with the search data
+            navigate('/results', { state: { searchResults: data } });
+        } catch (error) {
+            console.error('Error fetching search results:', error);
+            setIsLoading(false);
+            // Handle error (e.g., show error message to user)
+        }
     };
 
     return (
@@ -18,13 +44,17 @@ const HomePage = () => {
                     <br></br>
                 </header>
                 <div className="form-control w-full">
-                    <form onSubmit={handleRedirect} className="flex shadow-lg">
+                    <form onSubmit={handleSearch} className="flex shadow-lg">
                         <input
                             type="text"
+                            value={keyword}
+                            onChange={(e) => setKeyword(e.target.value)}
                             placeholder="Search by keywords, paper title, DOI or another identifier"
                             className="input input-bordered w-full rounded-r-none bg-white"
                         />
-                        <button type="submit" className="btn btn-primary rounded-l-none">Build a graph</button>
+                        <button type="submit" className="btn btn-primary rounded-l-none" disabled={isLoading}>
+                            {isLoading ? 'Searching...' : 'Build a graph'}
+                        </button>
                     </form>
                 </div>
             </div>

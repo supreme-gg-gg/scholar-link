@@ -1,10 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Graph from './graph';
 
 const GraphPage = () => {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
   const [expandedPaper, setExpandedPaper] = useState(null);
+  const [searchResults, setSearchResults] = useState([]);
+
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state && location.state.searchResults) {
+      setSearchResults(location.state.searchResults.papers);
+    }
+  }, [location]);
 
   return (
     <div className="flex h-screen bg-white relative">
@@ -14,23 +24,22 @@ const GraphPage = () => {
           <div className="flex-grow overflow-y-auto">
             <div className="p-4">
               <div className="space-y-4">
-                {[1, 2, 3, 4, 5].map((index) => (
+                {searchResults.map((paper, index) => (
                   <div key={index} className="card bg-white shadow-sm">
                     <div className="card-body p-4">
                       <div className="flex justify-between items-center">
-                        <h3 className="card-title text-sm text-black  font-Fustat">Paper Title {index}</h3>
+                        <h3 className="card-title text-sm text-black font-Fustat">{paper.title}</h3>
                         <button
                           onClick={() => setExpandedPaper(expandedPaper === index ? null : index)}
                           className="text-black/75"
                         >
-                          {expandedPaper === index ? '+' : '+'}
+                          {expandedPaper === index ? '-' : '+'}
                         </button>
                       </div>
-                      <p className="text-xs text-base-content/70  font-Fustat">Authors, Year</p>
+                      <p className="text-xs text-base-content/70 font-Fustat">{paper.authors.join(', ')}, {new Date(paper.date).getFullYear()}</p>
                       {expandedPaper === index && (
                         <div className="mt-2 text-xs">
-                            <p className='text-black/70'>Citations: 42</p>
-                            <p className="mt-4 text-sm text-black">In the past twenty years there has been much interest in the physical and biological sciences in nonlinear dynamical systems that appear to have random, unpredictable behavior...</p>
+                          <p className="mt-4 text-sm text-black">{paper.summary}</p>
                         </div>
                       )}
                     </div>
@@ -47,7 +56,6 @@ const GraphPage = () => {
           <span className="text-2xl text-black">{leftSidebarOpen ? '◀' : '▶'}</span>
         </button>
       </div>
-
       {/* Main Content Area */}
       <div className="flex-grow p-4 overflow-auto">
         <Graph />
