@@ -40,7 +40,22 @@ const GraphPage = () => {
     }
   }, [location]);
 
-  // ... (keep other useEffect and functions)
+  useEffect(() => {
+    if (expandedPaper !== null && paperRefs.current[expandedPaper] && sidebarContentRef.current) {
+      const paperElement = paperRefs.current[expandedPaper];
+      const sidebarContent = sidebarContentRef.current;
+      
+      const paperTop = paperElement.offsetTop;
+      const sidebarScrollTop = sidebarContent.scrollTop;
+      const sidebarHeight = sidebarContent.clientHeight;
+      if (paperTop < sidebarScrollTop || paperTop > sidebarScrollTop + sidebarHeight) {
+        sidebarContent.scrollTo({
+          top: paperTop - sidebarHeight / 2,
+          behavior: 'smooth'
+        });
+      }
+    }
+  }, [expandedPaper]);
 
 const handleSetAsOrigin = async (index) => {
   try {
@@ -49,7 +64,7 @@ const handleSetAsOrigin = async (index) => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ index: allPapers[index].index }),
+      body: JSON.stringify({ index : index}),
     });
     
     if (!response.ok) {
@@ -80,15 +95,16 @@ const handleSetAsOrigin = async (index) => {
     setIsModalOpen(!isModalOpen);
   };
 
-
   return (
     <div className="flex h-screen bg-white relative">
       {/* Left Sidebar */}
       <div className="relative h-full flex flex-col">
-        <div className={`bg-white transition-all duration-300 h-full ${leftSidebarOpen ? 'w-80' : 'w-0'} overflow-hidden shadow-lg flex flex-col`}>
+      <div className={`bg-white transition-all duration-300 h-full ${leftSidebarOpen ? 'w-80' : 'w-0'} overflow-hidden shadow-lg flex flex-col`}>
+          {/* Navbar */}
           <div className="p-4 border-b">
             <h2 className="text-lg font-semibold text-black">Papers</h2>
           </div>
+          {/* Scrollable content */}
           <div ref={sidebarContentRef} className="flex-grow overflow-y-auto">
             <div className="p-4">
               <div className="space-y-4">
@@ -141,36 +157,42 @@ const handleSetAsOrigin = async (index) => {
         {/* Toggle button for left sidebar */}
         <button
           onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-          className={`absolute top-1/2 -translate-y-1/2 transition-all duration-300 bg-white hover:bg-white p-2 rounded-r-md shadow-lg ${leftSidebarOpen ? 'right-0 translate-x-full' : 'left-0'}`}
+          className={`absolute top-1/2 -translate-y-1/2 bg-white hover:bg-white p-2 rounded-r-md shadow-lg ${leftSidebarOpen ? 'right-0 translate-x-full' : 'left-0'}`}
         >
           <span className="text-2xl text-primary">{leftSidebarOpen ? '◀' : '▶'}</span>
         </button>
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-grow p-4 overflow-auto relative">
-        <button
-          onClick={toggleModal}
-          className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Display Graph
-        </button>
-        <Graph 
-          papers={papers} 
-          matrix={matrix} 
-          hoveredPaperIndex={hoveredPaperIndex}
-          originPaperIndex={originPaperIndex}
-          onNodeClick={handleNodeClick}
-        />
+      <div className="flex-grow p-4 overflow-hidden relative">
+        <div className="fixed top-16 left-0 right-0 flex justify-center z-10">
+          <button
+            onClick={toggleModal}
+            className="btn btn-primary"
+          >
+            Display Graph
+          </button>
+        </div>
+        <div className="h-full overflow-auto">
+          <Graph 
+            papers={papers} 
+            matrix={matrix} 
+            hoveredPaperIndex={hoveredPaperIndex}
+            originPaperIndex={originPaperIndex}
+            onNodeClick={handleNodeClick}
+          />
+        </div>
         {isModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white w-11/12 h-5/6 rounded-lg overflow-hidden relative">
-              <button
-                onClick={toggleModal}
-                className="absolute top-4 left-1/2 transform -translate-x-1/2 hover:bg-blue-700 text-white btn-primary font-bold py-2 px-4 rounded z-10"
-              >
-                Display Graph
-              </button>
+              <div className="absolute top-4 left-0 right-0 flex justify-center z-10">
+                <button
+                  onClick={toggleModal}
+                  className="btn btn-primary"
+                >
+                  Display Graph
+                </button>
+              </div>
               <StreamlitEmbed />
             </div>
           </div>
