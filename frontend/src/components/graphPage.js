@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Graph from './graph';
 
 const GraphPage = () => {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
@@ -34,6 +35,7 @@ const GraphPage = () => {
       {/* Main Content Area */}
       <div className="flex-grow p-4 overflow-auto">
         <h1 className="text-2xl font-bold mb-4">GRAPH HERE</h1>
+        <Graph />
       </div>
 
       {/* Right Sidebar and Toggle Button */}
