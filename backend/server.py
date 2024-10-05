@@ -14,11 +14,29 @@ import time
 app = Flask(__name__)
 
 class Paper:
-    def __init__(self, name, original_name, citations):
+    def __init__(self, name, original_name, summary, pdf, published, authors, citations, cite_cnt=None):
         self.name = name
         self.original_name = original_name
+        self.summary = summary
+        self.pdf = pdf
+        self.published = published
+        self.authors = authors
         self.citations = citations
+        self.cite_cnt = cite_cnt
         self.cited_by = []  # Papers that cite this paper
+
+    def to_dict(self):
+        return {
+            "title": self.original_name,
+            "authors": self.authors,
+            "summary": self.summary,
+            "date": self.published,
+            "cited_by": self.cite_cnt
+        }
+
+def clean_text(text):
+        cleaned_text = re.sub(r'[^a-zA-Z0-9]', '', text)
+        return cleaned_text.lower()
 
 def search_arxiv(query, start, max_results):
     base_url = "http://export.arxiv.org/api/query?"
@@ -41,13 +59,19 @@ def search_arxiv(query, start, max_results):
     papers = []
 
     for entry in feed.entries:
-        paper = {
-            'title': entry.title,
-            'summary': entry.summary,
-            'pdf': entry.links[1].href,  # returns PDF link for further parsing
-            'published': entry.published,
-            'authors': [author.name for author in entry.authors]
-        }
+
+        with open("output.json", "w") as file:
+            json.dump(entry, file)
+        
+        paper = Paper(
+            name=clean_text(entry.title),
+            original_name=entry.title,
+            summary=entry.summary,
+            pdf=entry.links[1].href,  # returns PDF link for further parsing
+            published=entry.published,
+            authors=[author.name for author in entry.authors],
+            citations=[]  # Initialize with an empty list for citations
+        )
         papers.append(paper)
 
     return papers
@@ -77,10 +101,6 @@ def extract_text_from_web_pdf(pdf_url):
     except Exception as e:
         print(f"Error processing PDF from {pdf_url}: {str(e)}")
         return None
-
-def clean_text(text):
-    cleaned_text = re.sub(r'[^a-zA-Z0-9]', '', text)
-    return cleaned_text.lower()
 
 def extract_citations_from_text(text):
 
@@ -150,13 +170,14 @@ def create_papers(query, limit=100, batch_size=20):
     print("FETCHING START")
     
     def process_paper(paper):
-        if "pdf" not in paper["pdf"]:
+        if "pdf" not in paper.pdf:
             return None
-        text = extract_text_from_web_pdf(paper["pdf"])
+        text = extract_text_from_web_pdf(paper.pdf)
         if text is None:
             return None
         citations_json = extract_citations_from_text(text)
-        return Paper(clean_text(paper["title"]), paper["title"], [entry["title"] for entry in citations_json])
+        paper.citations = [entry["title"] for entry in citations_json]
+        return paper
 
     # Calculate the number of batches
     num_batches = math.ceil(limit / batch_size)
@@ -255,14 +276,41 @@ def process_papers(papers: list[Paper], start, neighbors):
 
     return {
         'matrix': matrix2,
-        'paper_names': [papers[result[i][0]].name for i in range(len(result))]
+        'paper_names': [papers[result[i][0]].original_name for i in range(len(result))]
     }
 
+@app.route('/search', methods=['POST'])
+def search_papers():
+    req = request.get_json()
+    keyword = req.get("keyword")
+    print(f"Received keyword: {keyword}")
+    papers = create_papers(keyword, 10)
+    data = process_papers(papers, 0, 10)
+    papers_json = [paper.to_dict() for paper in papers if paper.name in data["paper_names"]]
+
+    response = {
+        "total_papers": len(papers_json),
+        "source": "arXiv",
+        "papers": papers_json, # only returns the papers that we have selected from the algorithm
+        "matrix": data["matrix"]
+    }
+
+    return jsonify(response)
 
 @app.route('/graph', methods=['GET'])
 def make_graph():
-    papers = create_papers("machine learning", 100)
-    return jsonify(process_papers(papers, 0, 100))
+    papers = create_papers("machine learning", 10)
+    data = process_papers(papers, 0, 10)
+    papers_json = [paper.to_dict() for paper in papers if paper.name in data["paper_names"]]
+
+    response = {
+        "total_papers": len(papers_json),
+        "source": "arXiv",
+        "papers": papers_json, # only returns the papers that we have selected from the algorithm
+        "matrix": data["matrix"]
+    }
+
+    return jsonify(response)
 
 if __name__ == '__main__':
     app.run(debug=True)
