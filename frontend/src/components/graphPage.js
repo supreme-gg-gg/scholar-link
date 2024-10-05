@@ -27,7 +27,7 @@ const GraphPage = () => {
   const [originPaperIndex, setOriginPaperIndex] = useState(null);
   const [allPapers, setAllPapers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("Research Activity");
+  const [activeTab, setActiveTab] = useState("Force Directed");
 
   const location = useLocation();
   const paperRefs = useRef({});
