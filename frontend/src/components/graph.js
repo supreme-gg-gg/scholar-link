@@ -11,6 +11,7 @@ const Graph = ({ papers, matrix, hoveredPaperIndex, originPaperIndex, onNodeClic
   const primaryColorHover = '#4657FB';
   const originColor = '#FF4500';  // Bright orange-red for the origin paper
 
+  console.log(papers);
   useEffect(() => {
     if (!papers || !matrix || papers.length === 0 || matrix.length === 0) return;
 
