@@ -7,6 +7,9 @@ const Graph = () => {
   const [hoveredNode, setHoveredNode] = useState(null);
   const svgRef = useRef(null);
 
+  const primaryColor = '#7884fc';  
+  const primaryColorHover = '#4657FB';  
+
   const data = {
     "matrix": [
       [-1, 1250.0, 2500.0, 5000.0],
@@ -131,12 +134,21 @@ const Graph = () => {
   return (
     <svg
       ref={svgRef}
-      width="800"
-      height="600"
+      width="3840"
+      height="2160"
       onWheel={handleWheel}
       onMouseDown={handleMouseDown}
       style={{ cursor: 'move' }}
     >
+      <defs>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+          <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
       <g transform={`translate(${transform.x},${transform.y}) scale(${transform.scale})`}>
         {edges.map((edge, index) => (
           <line
@@ -145,7 +157,7 @@ const Graph = () => {
             y1={nodes[edge.source].y}
             x2={nodes[edge.target].x}
             y2={nodes[edge.target].y}
-            stroke="black"
+            stroke={primaryColor}
             strokeWidth={calculateLineThickness(edge.strength)}
           />
         ))}
@@ -159,10 +171,10 @@ const Graph = () => {
               cx={node.x}
               cy={node.y}
               r="40"
-              fill={hoveredNode === node.id ? "lightcoral" : "lightblue"}
-              stroke="black"
-              strokeWidth={hoveredNode === node.id ? "3" : "1"}
-              transition="all 0.3s ease"
+              fill={hoveredNode === node.id ? primaryColorHover : primaryColor}
+              stroke={hoveredNode === node.id ? primaryColorHover : "transparent"}
+              strokeWidth="3"
+              filter={hoveredNode === node.id ? "url(#glow)" : "none"}
             />
             <text
               x={node.x}
@@ -171,6 +183,7 @@ const Graph = () => {
               dominantBaseline="central"
               fontSize="14"
               fontWeight={hoveredNode === node.id ? "bold" : "normal"}
+              fill="white"
             >
               {node.name}
             </text>

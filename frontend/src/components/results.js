@@ -9,8 +9,8 @@ const Results = () => {
     };
 
     return (
-        <div className="container mx-auto p-4 bg-white text-black">
-            <h1 className="text-2xl font-semibold mb-4">Paper Suggestions</h1>
+        <div className="container mx-auto p-4 bg-white text-black font-Fustat">
+            <h1 className="text-2xl font-semibold mb-4 bg-white">Paper Suggestions</h1>
             <div className="card bg-white shadow-xl mb-4">
                 <div className="card-body">
                     <h2 className="card-title">Finding Chaos in Noisy Systems</h2>

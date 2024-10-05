@@ -10,20 +10,23 @@ const HomePage = () => {
     };
 
     return (
-        <main className="flex-grow flex flex-col items-center justify-center p-4 bg-white">
-            <header className="text-center mb-8">
-                <h1 className="text-6xl font-semibold mb-2 text-black">Explore connected papers in a visual graph</h1>
-                <p className="text-xl text-black">To start, enter a paper identifier</p>
-            </header>
-            <div className="form-control w-full max-w-3xl">
-                <form onSubmit={handleRedirect} className="flex shadow-lg">
-                    <input
-                        type="text"
-                        placeholder="Search by keywords, paper title, DOI or another identifier"
-                        className="input input-bordered w-full rounded-r-none bg-white"
-                    />
-                    <button type="submit" className="btn btn-primary rounded-l-none">Build a graph</button>
-                </form>
+        <main className="flex-grow flex flex-col items-center justify-center p-4 bg-cover bg-center bg-no-repeat bg-white font-Fustat" style={{ backgroundImage: 'url("/bg_scholarlink.png")' }}>
+            <div className="bg-white bg-opacity-80 p-8 rounded-lg shadow-xl max-w-5xl w-full">
+                <header className="text-center mb-">
+                    <h1 className="text-5xl font-semibold mb-2 text-black font-Fustat font-bold">Explore connected papers in a visual graph</h1>
+                    <p className="text-xl text-black">To start, enter a paper identifier</p>
+                    <br></br>
+                </header>
+                <div className="form-control w-full">
+                    <form onSubmit={handleRedirect} className="flex shadow-lg">
+                        <input
+                            type="text"
+                            placeholder="Search by keywords, paper title, DOI or another identifier"
+                            className="input input-bordered w-full rounded-r-none bg-white"
+                        />
+                        <button type="submit" className="btn btn-primary rounded-l-none">Build a graph</button>
+                    </form>
+                </div>
             </div>
         </main>
     );

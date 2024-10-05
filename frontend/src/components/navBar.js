@@ -4,9 +4,16 @@ import '../App.css';
 
 const NavBar = () => {
   return (
-    <div className="navbar bg-base-300 bg-white">
-      <div className="flex-1">
-        <Link to="/" className="btn btn-ghost normal-case text-xl text-black">Scholar Link</Link>
+    <div className="navbar bg-base-300 bg-white font-Fustat">
+      <div className="flex-1 items-center">
+        <Link to="/" className="btn btn-ghost normal-case text-xl text-primary font-Fustat font-black">
+          <img 
+            src="/logo_link.png" 
+            alt="Scholar Link Logo" 
+            className="w-6 h-8"
+          />
+          SCHOLAR LINK
+        </Link>
       </div>
       <div className="flex-none text-black">
         <ul className="menu menu-horizontal px-1">

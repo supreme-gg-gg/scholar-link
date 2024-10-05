@@ -6,7 +6,7 @@ module.exports = {
   theme: {
     extend: {},
     fontFamily: {
-      generalsans: ['GeneralSans', 'sans-serif'],
+      Fustat: ['Fustat', 'sans-serif'],
     },
   },
   plugins: [require("daisyui")],
