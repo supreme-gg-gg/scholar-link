@@ -2,15 +2,14 @@ import streamlit as st
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
+import requests
 
-# Set page config
 st.set_page_config(
     page_title="Research Activity Tracker",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# Custom CSS to make it look beautiful
 st.markdown("""
 <style>
     .reportview-container {
@@ -37,12 +36,43 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Generate sample data
-dates = pd.date_range(start="2010-01-01", end="2023-12-31", freq="M")
-activity = np.cumsum(np.random.randint(1, 10, size=len(dates)))
+# Fetch data from Flask API
+api_url = "http://127.0.0.1:5000/graphdata"
+try:
+    response = requests.get(api_url)
+    if response.status_code == 200:
+        input_data = response.json()
+    else:
+        st.error("Failed to fetch data from API.")
+        print(st.error)
+        input_data = []
+except Exception as e:
+    st.error(f"Error occurred: {str(e)}")
+    input_data = []
+
+# Generate date range for the DataFrame
+dates = pd.date_range(start="2010-01-01", end="2023-12-31", freq="MS")
+activity = np.zeros(len(dates))
 
 # Create DataFrame
 df = pd.DataFrame({"Date": dates, "Activity": activity})
+
+def update_activity(input_data):
+    """Updates the activity DataFrame based on the input data."""
+    for date_str, value in input_data:
+        date = pd.to_datetime(date_str).normalize().replace(day=1).tz_localize(None)
+        
+        mask = df['Date'] == date
+        
+        if mask.any():
+            df.loc[mask, 'Activity'] += value 
+        else:
+            st.warning(f"Date {date_str} is not in the range of the dataset or formatted correctly.")
+
+
+
+# Update the DataFrame with the input data fetched from API
+update_activity(input_data)
 
 # Create the graph
 fig = go.Figure()
@@ -60,14 +90,14 @@ fig.add_trace(go.Scatter(
 fig.update_layout(
     title={
         'text': "Research Activity Over Time",
-        'y':0.95,
-        'x':0.5,
+        'y': 0.95,
+        'x': 0.5,
         'xanchor': 'center',
         'yanchor': 'top',
         'font': dict(size=24, color='#1f4387')
     },
     xaxis_title="Time",
-    yaxis_title="Activity",
+    yaxis_title="Activity (citations)",
     font=dict(family="Helvetica Neue, Arial", size=14, color="#333333"),
     plot_bgcolor='rgba(240,242,246,0.8)',
     paper_bgcolor='rgba(0,0,0,0)',

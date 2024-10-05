@@ -181,7 +181,7 @@ def extract_citations_from_text(text):
 def fetch_batch(query, start, batch_size):
     return search_arxiv(query, start, batch_size)
 
-def create_papers(query, limit=100, batch_size=100):
+def create_papers(query, limit=10, batch_size=10):
     print("FETCHING START")
     
     def process_paper(paper):
@@ -305,7 +305,7 @@ def search_papers():
     req = request.get_json()
     keyword = req.get("keyword")
     print(f"Received keyword: {keyword}")
-    papers = create_papers(keyword, 100)
+    papers = create_papers(keyword, 10)
     papers_json = [paper.to_dict() for paper in papers]
     return jsonify(papers_json)
 
@@ -313,7 +313,7 @@ def search_papers():
 def make_graph():
     req = request.get_json()
     index= req.get("index")
-    data = process_papers(papers, index, 20)
+    data = process_papers(papers, index, 10)
     papers_json = [paper.to_dict() for paper in papers if paper.name in data["paper_names"]]
 
     response = {
@@ -325,25 +325,15 @@ def make_graph():
 
     return jsonify(response)
 
-@app.route('/prompt-deprecated', methods=['POST'])
-def prompt_deprecated():
-
-    nlp = spacy.load("en_core_web_sm")
-    data = request.json
-    user_input = data['prompt']
-    
-    doc = nlp(user_input)
-    keywords = [token.text for token in doc if token.is_alpha and not token.is_stop]
-
-    print(f"Keyword extracted are {keywords}")
-    
-    # Query your external database with keywords
-    results = create_papers(keywords)
-
-    return jsonify(results)
+# streamlit data
+@app.route('/graphdata', methods=['GET'])
+def graph_data():
+    paper_info = [[paper.published, len(paper.authors)] for paper in papers]
+    return jsonify(paper_info)
 
 @app.route('/prompt', methods=["POST"])
 def prompt():
+    global papers
     import subprocess
 
     data = request.get_json()
@@ -367,17 +357,8 @@ def prompt():
     result = ", ".join(f"'{item}'" for item in keyword)
     print(f"Received keyword: {result}")
     papers = create_papers(result, 10)
-    data = process_papers(papers, 0, 10)
-    papers_json = [paper.to_dict() for paper in papers if paper.name in data["paper_names"]]
-
-    response = {
-        "total_papers": len(papers_json),
-        "source": "arXiv",
-        "papers": papers_json, # only returns the papers that we have selected from the algorithm
-        "matrix": data["matrix"]
-    }
-
-    return jsonify(response)
+    papers_json = [paper.to_dict() for paper in papers]
+    return jsonify(papers_json)
 
 if __name__ == '__main__':
     app.run(debug=True)
