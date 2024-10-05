@@ -31,6 +31,7 @@ class Paper:
         self.cite_cnt = cite_cnt
         self.link = link
         self.cited_by = []  # Papers that cite this paper
+        self.index = -1
 
     def to_dict(self):
         return {
@@ -39,7 +40,8 @@ class Paper:
             "summary": self.summary,
             "date": self.published,
             "cited_by": self.cite_cnt,
-            "link": self.link
+            "link": self.link,
+            "index": self.index,
         }
 
 def clean_text(text):
@@ -79,7 +81,8 @@ def search_arxiv(query, start, max_results):
             published=entry.published,
             authors=[author.name for author in entry.authors],
             link = entry.links[0].href,
-            citations=[]  # Initialize with an empty list for citations
+            citations=[],  # Initialize with an empty list for citations
+            index=len(papers),
         )
         papers.append(paper)
 
@@ -288,28 +291,22 @@ def process_papers(papers: list[Paper], start, neighbors):
         'paper_names': [papers[result[i][0]].name for i in range(len(result))]
     }
 
+
+papers = []
+
 @app.route('/search', methods=['POST'])
 def search_papers():
     req = request.get_json()
     keyword = req.get("keyword")
     print(f"Received keyword: {keyword}")
     papers = create_papers(keyword, 10)
-    data = process_papers(papers, 0, 10)
-    papers_json = [paper.to_dict() for paper in papers if paper.name in data["paper_names"]]
+    return papers
 
-    response = {
-        "total_papers": len(papers_json),
-        "source": "arXiv",
-        "papers": papers_json, # only returns the papers that we have selected from the algorithm
-        "matrix": data["matrix"]
-    }
-
-    return jsonify(response)
-
-@app.route('/graph', methods=['GET'])
+@app.route('/graph', methods=['POST'])
 def make_graph():
-    papers = create_papers("machine learning", 10)
-    data = process_papers(papers, 0, 10)
+    req = request.get_json()
+    index= req.get("index")
+    data = process_papers(papers, index, 10)
     papers_json = [paper.to_dict() for paper in papers if paper.name in data["paper_names"]]
 
     response = {
