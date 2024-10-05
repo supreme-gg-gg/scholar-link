@@ -4,7 +4,7 @@ import '../App.css';
 
 const NavBar = () => {
   return (
-    <div className="navbar bg-base-300 bg-white shadow-md">
+    <div className="navbar bg-base-300 bg-white">
       <div className="flex-1">
         <Link to="/" className="btn btn-ghost normal-case text-xl text-black">Connected Papers</Link>
       </div>

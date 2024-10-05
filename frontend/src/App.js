@@ -5,6 +5,7 @@ import NavBar from './components/navBar';
 import Results from './components/results';
 import GraphPage from './components/graphPage';
 import HomePage from './components/homePage'
+import Graph from './components/graph';
 
 const App = () => {
   return (
@@ -13,7 +14,7 @@ const App = () => {
         <NavBar />
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/graph" element={<GraphPage />} />
+          <Route path="/graph" element={<Graph />} />
           <Route path="/results" element={<Results />} />
           <Route path="/contact" element={<div></div>} />
         </Routes>

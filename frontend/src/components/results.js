@@ -9,9 +9,9 @@ const Results = () => {
     };
 
     return (
-        <div className="container mx-auto p-4">
-            <h1 className="text-2xl font-bold mb-4">Paper Suggestions</h1>
-            <div className="card bg-base-100 shadow-xl mb-4">
+        <div className="container mx-auto p-4 bg-white text-black">
+            <h1 className="text-2xl font-semibold mb-4">Paper Suggestions</h1>
+            <div className="card bg-white shadow-xl mb-4">
                 <div className="card-body">
                     <h2 className="card-title">Finding Chaos in Noisy Systems</h2>
                     <p className="text-sm">Douglas Nychkatl, S. Ellner, Daniel Mccaffrey, et al.</p>

@@ -16,11 +16,11 @@ const HomePage = () => {
                 <p className="text-xl text-black">To start, enter a paper identifier</p>
             </header>
             <div className="form-control w-full max-w-3xl">
-                <form onSubmit={handleRedirect} className="flex">
+                <form onSubmit={handleRedirect} className="flex shadow-lg">
                     <input
                         type="text"
                         placeholder="Search by keywords, paper title, DOI or another identifier"
-                        className="input input-bordered w-full rounded-r-none"
+                        className="input input-bordered w-full rounded-r-none bg-white"
                     />
                     <button type="submit" className="btn btn-primary rounded-l-none">Build a graph</button>
                 </form>
