@@ -52,7 +52,7 @@ except Exception as e:
     input_data = []
 
 # Generate date range for the DataFrame
-dates = pd.date_range(start="2010-01-01", end="2023-12-31", freq="MS")
+dates = pd.date_range(start="2010-01-01", end="2024-12-31", freq="MS")
 activity = np.zeros(len(dates))
 
 # Create DataFrame
