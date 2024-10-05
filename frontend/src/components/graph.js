@@ -15,14 +15,15 @@ const Graph = ({ papers, matrix }) => {
 
     const width = 800;
     const height = 600;
-    const nodeRadius = 40;
+    const nodeRadius = 100;
 
     // Create nodes
     const newNodes = papers.map((paper, index) => ({
       id: index,
-      name: paper.title,
+      name: paper.authors.join(", ") + ", " + new Date(paper.date).getFullYear(),
       x: Math.random() * (width - 2 * nodeRadius) + nodeRadius,
       y: Math.random() * (height - 2 * nodeRadius) + nodeRadius,
+      authors: paper.authors,
     }));
 
     // Create edges
@@ -115,12 +116,39 @@ const Graph = ({ papers, matrix }) => {
 
   const calculateLineThickness = (strength) => {
     const minThickness = 1;
-    const maxThickness = 10;
+    const maxThickness = 100000;
     const minStrength = Math.min(...edges.map(e => e.strength));
     const maxStrength = Math.max(...edges.map(e => e.strength));
     
     return minThickness + ((strength - minStrength) / (maxStrength - minStrength)) * (maxThickness - minThickness);
   };
+
+  const wrapText = (text, maxWidth) => {
+    const words = text.split(' ');
+    const lines = [];
+    let currentLine = words[0];
+  
+    for (let i = 1; i < words.length; i++) {
+      const word = words[i];
+      const lineWidth = getTextWidth(currentLine + " " + word, "14px sans-serif");  // Renamed width to lineWidth
+      if (lineWidth < maxWidth) {
+        currentLine += " " + word;
+      } else {
+        lines.push(currentLine);
+        currentLine = word;
+      }
+    }
+    lines.push(currentLine);  // Push the last line
+    return lines;
+  };
+  
+  const getTextWidth = (text, font) => {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    context.font = font;
+    return context.measureText(text).width;
+  };
+  
 
   return (
     <svg
@@ -161,22 +189,31 @@ const Graph = ({ papers, matrix }) => {
             <circle
               cx={node.x}
               cy={node.y}
-              r="40"
+              r={node.authors.length*15+25}
               fill={hoveredNode === node.id ? primaryColorHover : primaryColor}
               stroke={hoveredNode === node.id ? primaryColorHover : "transparent"}
               strokeWidth="3"
               filter={hoveredNode === node.id ? "url(#glow)" : "none"}
+              overflow="wrap"
             />
             <text
-              x={node.x}
-              y={node.y}
-              textAnchor="middle"
-              dominantBaseline="central"
-              fontSize="14"
-              fontWeight={hoveredNode === node.id ? "bold" : "normal"}
-              fill="white"
+            x={node.x}
+            y={node.y}
+            textAnchor="middle"
+            dominantBaseline="central"
+            fontSize="14"
+            fontWeight={hoveredNode === node.id ? "bold" : "normal"}
+            fill="white"
             >
-              {node.name}
+            {wrapText(node.name, node.authors.length * 30 + 50).map((line, index) => (
+                <tspan
+                key={index}
+                x={node.x}
+                dy={index === 0 ? 0 : '1.2em'}
+                >
+                {line}
+                </tspan>
+            ))}
             </text>
           </g>
         ))}
