@@ -33,7 +33,6 @@ def search_arxiv(query, max_results):
     papers = []
 
     for entry in feed.entries:
-        print(entry)
         paper = {
             'title': entry.title,
             'summary': entry.summary,
@@ -74,12 +73,8 @@ def extract_text_from_web_pdf(pdf_url):
 def extract_citations_from_text(text):
 
     def clean_text(text):
-
-        cleaned_text = text.encode('ascii', 'ignore').decode('ascii')
-        cleaned_text = ' '.join(cleaned_text.split())
-        cleaned_text = re.sub(r'[^\w\s,.]', '', cleaned_text)  # Keeps words, spaces, commas, and periods
-        
-        return cleaned_text.strip()
+        cleaned_text = re.sub(r'[^a-zA-Z0-9]', '', text)
+        return cleaned_text.lower()
 
     # Find the citations section by searching for "References" or "Bibliography"
     reversed_text = text[::-1]
@@ -130,9 +125,9 @@ def extract_citations_from_text(text):
                         # Keep the title until the first period that is not part of additional information
                         title = title[:title_end_index].strip()
 
-                    # If title is just numbers or non-meaningful text, handle that case
-                    if title.isdigit() or title == '' or authors == '':
-                        continue
+                # If title is just numbers or non-meaningful text, handle that case
+                if title.isdigit() or title == '' or authors == '':
+                    continue
 
                 parsed_citations.append({"title": clean_text(title), "author": clean_text(authors)})
 
