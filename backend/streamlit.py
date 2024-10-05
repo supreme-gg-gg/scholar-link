@@ -4,7 +4,11 @@ import pandas as pd
 import numpy as np
 
 # Set page config
-st.set_page_config(page_title="Research Activity Tracker", layout="wide")
+st.set_page_config(
+    page_title="Research Activity Tracker",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
 # Custom CSS to make it look beautiful
 st.markdown("""
@@ -27,11 +31,11 @@ st.markdown("""
         border-radius: 10px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
 </style>
 """, unsafe_allow_html=True)
-
-# Title
-st.title("Research Activity Tracker")
 
 # Generate sample data
 dates = pd.date_range(start="2010-01-01", end="2023-12-31", freq="M")
@@ -94,15 +98,3 @@ fig.update_xaxes(
 
 # Display the graph
 st.plotly_chart(fig, use_container_width=True)
-
-# Add some explanatory text
-st.markdown("""
-This graph displays the cumulative research activity in a certain field over time. 
-The x-axis represents the timeline, while the y-axis shows the activity level. 
-You can use the range slider at the bottom to zoom in on specific time periods, 
-or use the buttons above the graph to quickly select common time ranges.
-
-The smooth curve indicates a steady increase in research activity over the years, 
-with some periods showing more rapid growth than others. This visualization helps 
-in identifying trends and patterns in the research field's development over time.
-""")
