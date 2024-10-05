@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, redirect
 from flask_cors import CORS
 import heapq
 import math
@@ -71,8 +71,6 @@ def search_arxiv(query, start, max_results):
     # Parse the response
     feed = feedparser.parse(response.content)
     papers = []
-
-    print(feed)
 
     for entry in feed.entries:
         
@@ -296,8 +294,28 @@ def process_papers(og_papers: list[Paper], start, neighbors):
         'paper_names': [papers[result[i][0]].name for i in range(len(result))]
     }
 
-
 papers = []
+
+stored_url = ""
+
+@app.route('/send-url', methods=['POST'])
+def receive_data():
+    global stored_url
+    data = request.get_json()
+    pdf_url = data.get('url')
+    
+    if pdf_url:
+        # Store the PDF URL for Streamlit to access
+        stored_url = pdf_url
+        return jsonify({"response": "Data received successfully!"}), 200
+    else:
+        return jsonify({"error": "No URL provided."}), 400
+
+@app.route('/get-url', methods=['GET'])
+def get_data():
+    global stored_url
+    # Return the stored PDF URL
+    return jsonify({"url":stored_url}), 200
 
 @app.route('/search', methods=['POST'])
 def search_papers():
