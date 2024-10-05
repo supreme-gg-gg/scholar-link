@@ -1,6 +1,13 @@
 from flask import Flask, request, jsonify
 import heapq
 
+import requests
+import feedparser
+import fitz  # PyMuPDF
+import re
+import json
+import time
+
 app = Flask(__name__)
 
 class Paper:
@@ -8,6 +15,148 @@ class Paper:
         self.name = name
         self.citations = citations
         self.cited_by = []  # Papers that cite this paper
+
+# Function to search arXiv for papers
+def search_arxiv(query, max_results):
+    base_url = "http://export.arxiv.org/api/query?"
+    search_query = f"search_query=all:{query}&start=0&max_results={max_results}"
+    for attempt in range(5):  # Try up to 5 times
+        try:
+            response = requests.get(base_url + search_query)
+            response.raise_for_status()  # Raise an error for bad responses
+        except requests.exceptions.RequestException as e:
+            print(f"Attempt {attempt + 1}: {e}")
+            time.sleep(2 ** attempt)  # Exponential backoff
+
+    # Parse the response
+    feed = feedparser.parse(response.content)
+    papers = []
+
+    for entry in feed.entries:
+        print(entry)
+        paper = {
+            'title': entry.title,
+            'summary': entry.summary,
+            'pdf': entry.links[1].href, # returns PDF link for further parsing
+            'published': entry.published,
+            'authors': [author.name for author in entry.authors]
+        }
+        papers.append(paper)
+
+    return papers
+
+def extract_text_from_web_pdf(pdf_url):
+    try: 
+        # Step 1: Get PDF content from URL
+        response = requests.get(pdf_url)
+        response.raise_for_status()  # Check if the request was successful
+        
+        # Step 2: Check if the response content type is a PDF
+        if response.headers['Content-Type'] != 'application/pdf':
+            raise ValueError("URL does not point to a valid PDF file")
+
+        pdf_bytes = response.content
+
+        # Step 3: Open the PDF from bytes in-memory using PyMuPDF
+        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+
+        # Step 4: Extract the text from the PDF
+        text = ""
+        for page_num in range(doc.page_count):
+            page = doc[page_num]
+            text += page.get_text()  # Extract text from each page
+
+        return text
+    except Exception as e:
+        print(f"Error processing PDF from {pdf_url}: {str(e)}")
+        return None
+
+def extract_citations_from_text(text):
+
+    def clean_text(text):
+
+        cleaned_text = text.encode('ascii', 'ignore').decode('ascii')
+        cleaned_text = ' '.join(cleaned_text.split())
+        cleaned_text = re.sub(r'[^\w\s,.]', '', cleaned_text)  # Keeps words, spaces, commas, and periods
+        
+        return cleaned_text.strip()
+
+    # Find the citations section by searching for "References" or "Bibliography"
+    reversed_text = text[::-1]
+    citations_start = re.search(r'^\s*(secnerefer|yhpargoilbib)\s*$', reversed_text.lower(), re.MULTILINE)
+    try:
+        original_start_pos = len(text) - citations_start.end()
+    except AttributeError:
+        return []
+
+    if original_start_pos:
+        # Extract the citations section from the text
+        citations_section = text[original_start_pos:]
+
+        # Split by common delimiters used in citations
+        # citations = re.split(r'\[\d+\]|\n\d+\. ', citations_section)  # For numbered reference   
+        citations = re.split(r'\[\d+\]\s*', citations_section)
+        parsed_citations = []
+        for citation in citations:
+            citation = citation.strip()  # Clean up whitespace
+            if citation:  # Only process non-empty citations
+                
+                # Step 1: Initialize variables
+                authors = ""
+                title = ""
+                
+                # Step 2: Iterate through the citation and find the last valid period
+                last_valid_period_index = -1
+
+                for index, char in enumerate(citation):
+                    if char == '.':
+                        # Check the character before the period
+                        if index > 0 and citation[index - 1].isupper():
+                            # If the previous character is uppercase, skip this period (possible initial)
+                            continue
+                        else:
+                            # If we're not skipping, we found the last valid period
+                            last_valid_period_index = index
+                            break
+
+                # If a valid period was found, extract authors and title
+                if last_valid_period_index != -1:
+                    authors = citation[:last_valid_period_index].strip()
+                    title = citation[last_valid_period_index + 1:].strip()
+
+                    # Handle additional periods in the title (cut off at the first valid period in title)
+                    title_end_index = title.find('.')
+                    if title_end_index != -1:
+                        # Keep the title until the first period that is not part of additional information
+                        title = title[:title_end_index].strip()
+
+                    # If title is just numbers or non-meaningful text, handle that case
+                    if title.isdigit() or title == '' or authors == '':
+                        continue
+
+                parsed_citations.append({"title": clean_text(title), "author": clean_text(authors)})
+
+        return parsed_citations
+
+    return []
+
+def create_papers(query, limit=100):
+    papers = search_arxiv(query, max_results=limit)
+
+    paper_list = []
+
+    for paper in papers:
+        print(f"Processing {paper["pdf"]}")
+        if "pdf" not in paper["pdf"]:
+            continue
+        text = extract_text_from_web_pdf(paper["pdf"])
+        if text == None:
+            continue
+        citations_json = extract_citations_from_text(text)
+        paper_list.append(Paper(paper["title"], [entry["title"] for entry in citations_json]))
+
+    return paper_list
+
 
 # makes paper list into matrix of distances
 def process_papers(papers: list[Paper], start, neighbors):
@@ -79,15 +228,9 @@ def process_papers(papers: list[Paper], start, neighbors):
 
 
 
-@app.route('/graph', methods=['POST'])
+@app.route('/graph', methods=['GET'])
 def make_graph():
-    papers = [
-        Paper("Paper A", ["Paper B", "Paper C", "Paper D"]),
-        Paper("Paper B", ["Paper C", "Paper E"]),
-        Paper("Paper C", ["Paper E"]),
-        Paper("Paper D", ["Paper B", "Paper C"]),
-        Paper("Paper E", [])
-    ]
+    papers = create_papers("machine learning", 10)
     return jsonify(process_papers(papers, 0, 3))
 
 if __name__ == '__main__':
