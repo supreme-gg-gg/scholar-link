@@ -1,5 +1,8 @@
 from flask import Flask, request, jsonify
 import heapq
+import math
+
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
 import feedparser
@@ -16,28 +19,31 @@ class Paper:
         self.citations = citations
         self.cited_by = []  # Papers that cite this paper
 
-# Function to search arXiv for papers
-def search_arxiv(query, max_results):
+def search_arxiv(query, start, max_results):
     base_url = "http://export.arxiv.org/api/query?"
-    search_query = f"search_query=all:{query}&start=0&max_results={max_results}"
+    search_query = f"search_query=all:{query}&start={start}&max_results={max_results}"
     for attempt in range(5):  # Try up to 5 times
         try:
             response = requests.get(base_url + search_query)
             response.raise_for_status()  # Raise an error for bad responses
+            break
         except requests.exceptions.RequestException as e:
             print(f"Attempt {attempt + 1}: {e}")
-            time.sleep(2 ** attempt)  # Exponential backoff
+            if attempt < 4:  # Don't sleep on the last attempt
+                time.sleep(2 ** attempt)  # Exponential backoff
+    else:
+        print("Failed to fetch results after 5 attempts")
+        return []
 
     # Parse the response
     feed = feedparser.parse(response.content)
     papers = []
 
     for entry in feed.entries:
-        print(entry)
         paper = {
             'title': entry.title,
             'summary': entry.summary,
-            'pdf': entry.links[1].href, # returns PDF link for further parsing
+            'pdf': entry.links[1].href,  # returns PDF link for further parsing
             'published': entry.published,
             'authors': [author.name for author in entry.authors]
         }
@@ -140,22 +146,51 @@ def extract_citations_from_text(text):
 
     return []
 
-def create_papers(query, limit=100):
-    papers = search_arxiv(query, max_results=limit)
+def fetch_batch(query, start, batch_size):
+    return search_arxiv(query, start, batch_size)
 
-    paper_list = []
-
-    for paper in papers:
-        print(f"Processing {paper["pdf"]}")
+def create_papers(query, limit=100, batch_size=20):
+    print("FETCHING START")
+    
+    def process_paper(paper):
         if "pdf" not in paper["pdf"]:
-            continue
+            return None
         text = extract_text_from_web_pdf(paper["pdf"])
-        if text == None:
-            continue
+        if text is None:
+            return None
         citations_json = extract_citations_from_text(text)
-        paper_list.append(Paper(paper["title"], [entry["title"] for entry in citations_json]))
+        return Paper(paper["title"], [entry["title"] for entry in citations_json])
 
-    return paper_list
+    # Calculate the number of batches
+    num_batches = math.ceil(limit / batch_size)
+    
+    all_papers = []
+    processed_papers = []
+
+    with ThreadPoolExecutor() as executor:
+        # Fetch papers in batches concurrently
+        batch_futures = [executor.submit(fetch_batch, query, i * batch_size, batch_size) 
+                         for i in range(num_batches)]
+
+        for future in as_completed(batch_futures):
+            batch_papers = future.result()
+            all_papers.extend(batch_papers)
+            if len(all_papers) >= limit:
+                break
+
+        # Limit the number of papers to the requested limit
+        all_papers = all_papers[:limit]
+
+        # Process papers concurrently
+        process_futures = [executor.submit(process_paper, paper) for paper in all_papers]
+
+        for future in as_completed(process_futures):
+            result = future.result()
+            if result is not None:
+                processed_papers.append(result)
+
+    print("FETCHING DONE")
+    return processed_papers
 
 
 # makes paper list into matrix of distances
@@ -223,15 +258,14 @@ def process_papers(papers: list[Paper], start, neighbors):
 
     return {
         'matrix': matrix2,
-        'paper_names': [papers[result[i][0]] for i in range(i+1, len(result))]
+        'paper_names': [papers[result[i][0]].name for i in range(len(result))]
     }
-
 
 
 @app.route('/graph', methods=['GET'])
 def make_graph():
-    papers = create_papers("machine learning", 10)
-    return jsonify(process_papers(papers, 0, 3))
+    papers = create_papers("machine learning", 100)
+    return jsonify(process_papers(papers, 0, 100))
 
 if __name__ == '__main__':
     app.run(debug=True)
