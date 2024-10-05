@@ -2,9 +2,8 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import heapq
 import math
-
+import copy
 from concurrent.futures import ThreadPoolExecutor, as_completed
-
 import requests
 import feedparser
 import fitz  # PyMuPDF
@@ -182,7 +181,7 @@ def extract_citations_from_text(text):
 def fetch_batch(query, start, batch_size):
     return search_arxiv(query, start, batch_size)
 
-def create_papers(query, limit=100, batch_size=20):
+def create_papers(query, limit=100, batch_size=100):
     print("FETCHING START")
     
     def process_paper(paper):
@@ -229,7 +228,8 @@ def create_papers(query, limit=100, batch_size=20):
 
 
 # makes paper list into matrix of distances
-def process_papers(papers: list[Paper], start, neighbors):
+def process_papers(og_papers: list[Paper], start, neighbors):
+    papers = copy.deepcopy(og_papers)
     # make graph
     matrix = [[10000 for _ in range(len(papers))] for _ in range(len(papers))]
     paper_dict = {}
@@ -305,16 +305,15 @@ def search_papers():
     req = request.get_json()
     keyword = req.get("keyword")
     print(f"Received keyword: {keyword}")
-    papers = create_papers(keyword, 10)
+    papers = create_papers(keyword, 100)
     papers_json = [paper.to_dict() for paper in papers]
     return jsonify(papers_json)
 
 @app.route('/graph', methods=['POST'])
 def make_graph():
-    print(papers)
     req = request.get_json()
     index= req.get("index")
-    data = process_papers(papers, index, 10)
+    data = process_papers(papers, index, 20)
     papers_json = [paper.to_dict() for paper in papers if paper.name in data["paper_names"]]
 
     response = {
