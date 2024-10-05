@@ -10,7 +10,7 @@ const NavBar = () => {
           <img 
             src="/logo_link.png" 
             alt="Scholar Link Logo" 
-            className="w-6 h-8"
+            className="w-8 h-8"
           />
           scholar-link
         </Link>

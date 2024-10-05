@@ -23,8 +23,16 @@ const HomePage = () => {
             const data = await response.json();
             setIsLoading(false);
            
-            // Navigate directly to GraphPage with the search data
-            navigate('/graph', { state: { searchResults: data } });
+            // Navigate directly to GraphPage with the search data, including links if available
+            navigate('/graph', { 
+                state: { 
+                    searchResults: {
+                        papers: data.papers,
+                        matrix: data.matrix,
+                        links: data.links || []
+                    } 
+                } 
+            });
         } catch (error) {
             console.error('Error fetching search results:', error);
             setIsLoading(false);
