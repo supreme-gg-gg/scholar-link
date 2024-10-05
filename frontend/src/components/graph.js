@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const Graph = ({ papers, matrix, hoveredPaperIndex, originPaperIndex }) => {
+const Graph = ({ papers, matrix, hoveredPaperIndex, originPaperIndex, onNodeClick }) => {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
@@ -150,6 +150,12 @@ const Graph = ({ papers, matrix, hoveredPaperIndex, originPaperIndex }) => {
     return context.measureText(text).width;
   };
 
+  const handleNodeClick = (index) => {
+    if (onNodeClick) {
+      onNodeClick(index);
+    }
+  };
+
   return (
     <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
       <svg
@@ -187,6 +193,8 @@ const Graph = ({ papers, matrix, hoveredPaperIndex, originPaperIndex }) => {
               key={node.id}
               onMouseEnter={() => setHoveredNode(node.id)}
               onMouseLeave={() => setHoveredNode(null)}
+              onClick={() => handleNodeClick(node.id)}
+              style={{ cursor: 'pointer' }}
             >
               <circle
                 cx={node.x}
