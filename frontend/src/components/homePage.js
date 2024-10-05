@@ -38,9 +38,9 @@ const HomePage = () => {
 
     return (
         <main className="flex-grow flex flex-col items-center justify-center p-4 bg-cover bg-center bg-no-repeat bg-white font-Fustat" style={{ backgroundImage: 'url("/bg_scholarlink.png")' }}>
-            <div className="bg-white bg-opacity-80 p-8 rounded-lg shadow-xl max-w-5xl w-full">
+            <div className="bg-white bg-opacity-80 p-8 rounded-lg shadow-xl max-w-6xl w-full">
                 <header className="text-center mb-8">
-                    <h1 className="text-5xl font-semibold mb-2 text-black font-Fustat font-bold">Explore connected papers in a visual graph</h1>
+                    <h1 className="text-5xl font-semibold mb-2 text-black font-Fustat font-bold">Visualize connected papers in interactive graphs</h1>
                     <p className="text-xl text-black">To start, enter a {searchMode === 'keyword' ? 'keyword' : 'prompt'}</p>
                 </header>
                 <div className="form-control w-full mb-4">
