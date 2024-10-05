@@ -27,7 +27,7 @@ const GraphPage = () => {
           onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
           className={`absolute top-1/2 -translate-y-1/2 transition-all duration-300 bg-white hover:bg-white p-2 rounded-r-md shadow-md ${leftSidebarOpen ? 'right-0 translate-x-full' : 'left-0'}`}
         >
-          <span className="text-2xl">{leftSidebarOpen ? '◀' : '▶'}</span>
+          <span className="text-2xl text-black">{leftSidebarOpen ? '◀' : '▶'}</span>
         </button>
       </div>
 
@@ -42,7 +42,7 @@ const GraphPage = () => {
           onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
           className={`absolute top-1/2 -translate-y-1/2 transition-all duration-300 bg-white hover:bg-white p-2 rounded-l-md shadow-md ${rightSidebarOpen ? 'left-0 -translate-x-full' : 'right-0'}`}
         >
-          <span className="text-2xl">{rightSidebarOpen ? '▶' : '◀'}</span>
+          <span className="text-2xl text-black">{rightSidebarOpen ? '▶' : '◀'}</span>
         </button>
         <div className={`bg-white transition-all duration-300 ${rightSidebarOpen ? 'w-80' : 'w-0'} overflow-hidden`}>
           <div className="p-4 text-black/70">

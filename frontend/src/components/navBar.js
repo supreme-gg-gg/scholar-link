@@ -6,7 +6,7 @@ const NavBar = () => {
   return (
     <div className="navbar bg-base-300 bg-white">
       <div className="flex-1">
-        <Link to="/" className="btn btn-ghost normal-case text-xl text-black">Connected Papers</Link>
+        <Link to="/" className="btn btn-ghost normal-case text-xl text-black">Scholar Link</Link>
       </div>
       <div className="flex-none text-black">
         <ul className="menu menu-horizontal px-1">
