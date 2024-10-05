@@ -328,7 +328,7 @@ def make_graph():
 # streamlit data
 @app.route('/graphdata', methods=['GET'])
 def graph_data():
-    paper_info = [[paper.published, len(paper.authors)] for paper in papers]
+    paper_info = [[paper.published, sum(len(author) for author in paper.authors)] for paper in papers]
     return jsonify(paper_info)
 
 @app.route('/prompt', methods=["POST"])
