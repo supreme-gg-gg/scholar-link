@@ -14,8 +14,9 @@ import time
 app = Flask(__name__)
 
 class Paper:
-    def __init__(self, name, citations):
+    def __init__(self, name, original_name, citations):
         self.name = name
+        self.original_name = original_name
         self.citations = citations
         self.cited_by = []  # Papers that cite this paper
 
@@ -77,11 +78,11 @@ def extract_text_from_web_pdf(pdf_url):
         print(f"Error processing PDF from {pdf_url}: {str(e)}")
         return None
 
-def extract_citations_from_text(text):
+def clean_text(text):
+    cleaned_text = re.sub(r'[^a-zA-Z0-9]', '', text)
+    return cleaned_text.lower()
 
-    def clean_text(text):
-        cleaned_text = re.sub(r'[^a-zA-Z0-9]', '', text)
-        return cleaned_text.lower()
+def extract_citations_from_text(text):
 
     # Find the citations section by searching for "References" or "Bibliography"
     reversed_text = text[::-1]
@@ -155,7 +156,7 @@ def create_papers(query, limit=100, batch_size=20):
         if text is None:
             return None
         citations_json = extract_citations_from_text(text)
-        return Paper(paper["title"], [entry["title"] for entry in citations_json])
+        return Paper(clean_text(paper["title"]), paper["title"], [entry["title"] for entry in citations_json])
 
     # Calculate the number of batches
     num_batches = math.ceil(limit / batch_size)
