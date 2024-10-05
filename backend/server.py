@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import heapq
 import math
 
@@ -11,9 +12,12 @@ import re
 import json
 import time
 
-import urllib.parse, spacy
+import spacy
 
 app = Flask(__name__)
+
+# Allow requests from your React frontend
+CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 
 class Paper:
     def __init__(self, name, original_name, summary, pdf, published, authors, citations, cite_cnt=None):
