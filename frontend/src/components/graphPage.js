@@ -6,13 +6,16 @@ const GraphPage = () => {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
   const [expandedPaper, setExpandedPaper] = useState(null);
-  const [searchResults, setSearchResults] = useState([]);
+  const [papers, setPapers] = useState([]);
+  const [matrix, setMatrix] = useState([]);
 
   const location = useLocation();
 
   useEffect(() => {
     if (location.state && location.state.searchResults) {
-      setSearchResults(location.state.searchResults.papers);
+      const { papers, matrix } = location.state.searchResults;
+      setPapers(papers);
+      setMatrix(matrix);
     }
   }, [location]);
 
@@ -24,7 +27,7 @@ const GraphPage = () => {
           <div className="flex-grow overflow-y-auto">
             <div className="p-4">
               <div className="space-y-4">
-                {searchResults.map((paper, index) => (
+                {papers.map((paper, index) => (
                   <div key={index} className="card bg-white shadow-sm">
                     <div className="card-body p-4">
                       <div className="flex justify-between items-center">
@@ -36,7 +39,9 @@ const GraphPage = () => {
                           {expandedPaper === index ? '-' : '+'}
                         </button>
                       </div>
-                      <p className="text-xs text-base-content/70 font-Fustat">{paper.authors.join(', ')}, {new Date(paper.date).getFullYear()}</p>
+                      <p className="text-xs text-base-content/70 font-Fustat">
+                        {paper.authors.join(', ')}, {new Date(paper.date).getFullYear()}
+                      </p>
                       {expandedPaper === index && (
                         <div className="mt-2 text-xs">
                           <p className="mt-4 text-sm text-black">{paper.summary}</p>
@@ -58,9 +63,8 @@ const GraphPage = () => {
       </div>
       {/* Main Content Area */}
       <div className="flex-grow p-4 overflow-auto">
-        <Graph />
+        <Graph papers={papers} matrix={matrix} />
       </div>
-
       {/* Right Sidebar (AI Chatbot) and Toggle Button */}
       <div className="relative h-full">
         <button
@@ -71,7 +75,7 @@ const GraphPage = () => {
         </button>
         <div className={`bg-white transition-all duration-300 h-full ${rightSidebarOpen ? 'w-80' : 'w-0'} overflow-hidden shadow-lg flex flex-col`}>
           <div className="flex-grow overflow-y-auto">
-            <div className="p-4 text-black/70  font-Fustat">
+            <div className="p-4 text-black/70 font-Fustat">
               <h2 className="text-lg font-semibold mb-4 text-black">AI Chatbot</h2>
               {/* Placeholder for AI Chatbot */}
               <div className="bg-gray-100 p-4 rounded">

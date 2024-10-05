@@ -9,25 +9,22 @@ const HomePage = () => {
     const handleSearch = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-
         try {
-            const response = await fetch('/search', {
+            const response = await fetch('http:127.0.0.1:5000/search', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ keyword }),
             });
-
             if (!response.ok) {
                 throw new Error('Network response was not ok');
             }
-
             const data = await response.json();
             setIsLoading(false);
-            
-            // Navigate to results page with the search data
-            navigate('/results', { state: { searchResults: data } });
+           
+            // Navigate directly to GraphPage with the search data
+            navigate('/graph', { state: { searchResults: data } });
         } catch (error) {
             console.error('Error fetching search results:', error);
             setIsLoading(false);
