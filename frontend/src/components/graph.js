@@ -20,7 +20,7 @@ const Graph = ({ papers, matrix }) => {
     // Create nodes
     const newNodes = papers.map((paper, index) => ({
       id: index,
-      name: paper.authors.join(", ") + ", " + new Date(paper.date).getFullYear(),
+      name: paper.authors[0] + ", " + new Date(paper.date).getFullYear(),
       x: Math.random() * (width - 2 * nodeRadius) + nodeRadius,
       y: Math.random() * (height - 2 * nodeRadius) + nodeRadius,
       authors: paper.authors,
@@ -189,7 +189,7 @@ const Graph = ({ papers, matrix }) => {
             <circle
               cx={node.x}
               cy={node.y}
-              r={node.authors.length*15+25}
+              r={node.authors.length*15+30}
               fill={hoveredNode === node.id ? primaryColorHover : primaryColor}
               stroke={hoveredNode === node.id ? primaryColorHover : "transparent"}
               strokeWidth="3"
@@ -205,7 +205,7 @@ const Graph = ({ papers, matrix }) => {
             fontWeight={hoveredNode === node.id ? "bold" : "normal"}
             fill="white"
             >
-            {wrapText(node.name, node.authors.length * 30 + 50).map((line, index) => (
+            {wrapText(node.name, node.authors.length * 30 + 60).map((line, index) => (
                 <tspan
                 key={index}
                 x={node.x}

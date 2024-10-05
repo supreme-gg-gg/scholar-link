@@ -8,18 +8,17 @@ const GraphPage = () => {
   const [expandedPaper, setExpandedPaper] = useState(null);
   const [papers, setPapers] = useState([]);
   const [matrix, setMatrix] = useState([]);
-  const [links, setLinks] = useState([]);
 
   const location = useLocation();
 
   useEffect(() => {
     if (location.state && location.state.searchResults) {
-      const { papers, matrix, links } = location.state.searchResults;
+      const { papers, matrix} = location.state.searchResults;
       setPapers(papers);
       setMatrix(matrix);
-      setLinks(links || []);
     }
   }, [location]);
+  console.log(papers);
 
   return (
     <div className="flex h-screen bg-white relative">
@@ -34,13 +33,9 @@ const GraphPage = () => {
                     <div className="card-body p-4">
                       <div className="flex justify-between items-center">
                         <h3 className="card-title text-sm text-black font-Fustat">
-                          {links[index] ? (
-                            <a href={links[index]} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
-                              {paper.title}
-                            </a>
-                          ) : (
-                            paper.title
-                          )}
+                          <a href={paper.link} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
+                            {paper.title}
+                          </a>
                         </h3>
                         <button
                           onClick={() => setExpandedPaper(expandedPaper === index ? null : index)}
