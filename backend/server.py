@@ -11,6 +11,8 @@ import re
 import json
 import time
 
+import urllib.parse, spacy
+
 app = Flask(__name__)
 
 class Paper:
@@ -40,7 +42,8 @@ def clean_text(text):
 
 def search_arxiv(query, start, max_results):
     base_url = "http://export.arxiv.org/api/query?"
-    search_query = f"search_query=all:{query}&start={start}&max_results={max_results}"
+    encoded_query = urllib.parse.quote(f"all:{query}")
+    search_query = f"search_query=all:{encoded_query}&start={start}&max_results={max_results}"
     for attempt in range(5):  # Try up to 5 times
         try:
             response = requests.get(base_url + search_query)
@@ -311,6 +314,26 @@ def make_graph():
     }
 
     return jsonify(response)
+
+nlp = spacy.load("en_core_web_sm")
+
+@app.route('/prompt', methods=['POST'])
+def search():
+    data = request.json
+    user_input = data['query']
+    
+    # Process input with NLP
+    keywords = extract_keywords(user_input)
+    
+    # Query your external database with keywords
+    results = create_papers(keywords)
+
+    return jsonify(results)
+
+def extract_keywords(text):
+    doc = nlp(text)
+    keywords = [token.text for token in doc if token.is_alpha and not token.is_stop]
+    return keywords
 
 if __name__ == '__main__':
     app.run(debug=True)
