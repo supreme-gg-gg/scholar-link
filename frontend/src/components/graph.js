@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const Graph = ({ papers, matrix }) => {
+const Graph = ({ papers, matrix, hoveredPaperIndex, originPaperIndex }) => {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
@@ -8,13 +8,14 @@ const Graph = ({ papers, matrix }) => {
   const svgRef = useRef(null);
 
   const primaryColor = '#7884fc';  
-  const primaryColorHover = '#4657FB';  
+  const primaryColorHover = '#4657FB';
+  const originColor = '#FF4500';  // Bright orange-red for the origin paper
 
   useEffect(() => {
     if (!papers || !matrix || papers.length === 0 || matrix.length === 0) return;
 
-    const width = 800;
-    const height = 600;
+    const width = 1600;
+    const height = 1200;
     const nodeRadius = 100;
 
     // Create nodes
@@ -43,10 +44,10 @@ const Graph = ({ papers, matrix }) => {
     setNodes(newNodes);
     setEdges(newEdges);
 
-    // Apply force-directed layout
+    // Force-directed layout simulation
     const simulation = () => {
       const force = 0.1;
-      const minDistance = nodeRadius * 2;
+      const minDistance = nodeRadius * 2.5;
 
       newNodes.forEach((node, i) => {
         newNodes.forEach((otherNode, j) => {
@@ -116,7 +117,7 @@ const Graph = ({ papers, matrix }) => {
 
   const calculateLineThickness = (strength) => {
     const minThickness = 1;
-    const maxThickness = 100000;
+    const maxThickness = 5; // Reduced maximum thickness
     const minStrength = Math.min(...edges.map(e => e.strength));
     const maxStrength = Math.max(...edges.map(e => e.strength));
     
@@ -130,7 +131,7 @@ const Graph = ({ papers, matrix }) => {
   
     for (let i = 1; i < words.length; i++) {
       const word = words[i];
-      const lineWidth = getTextWidth(currentLine + " " + word, "14px sans-serif");  // Renamed width to lineWidth
+      const lineWidth = getTextWidth(currentLine + " " + word, "14px sans-serif");
       if (lineWidth < maxWidth) {
         currentLine += " " + word;
       } else {
@@ -138,7 +139,7 @@ const Graph = ({ papers, matrix }) => {
         currentLine = word;
       }
     }
-    lines.push(currentLine);  // Push the last line
+    lines.push(currentLine);
     return lines;
   };
   
@@ -148,77 +149,82 @@ const Graph = ({ papers, matrix }) => {
     context.font = font;
     return context.measureText(text).width;
   };
-  
 
   return (
-    <svg
-      ref={svgRef}
-      width="3840"
-      height="2160"
-      onWheel={handleWheel}
-      onMouseDown={handleMouseDown}
-      style={{ cursor: 'move' }}
-    >
-      <defs>
-        <filter id="glow">
-          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-          <feMerge>
-            <feMergeNode in="coloredBlur"/>
-            <feMergeNode in="SourceGraphic"/>
-          </feMerge>
-        </filter>
-      </defs>
-      <g transform={`translate(${transform.x},${transform.y}) scale(${transform.scale})`}>
-        {edges.map((edge, index) => (
-          <line
-            key={index}
-            x1={nodes[edge.source].x}
-            y1={nodes[edge.source].y}
-            x2={nodes[edge.target].x}
-            y2={nodes[edge.target].y}
-            stroke={primaryColor}
-            strokeWidth={calculateLineThickness(edge.strength)}
-          />
-        ))}
-        {nodes.map((node) => (
-          <g 
-            key={node.id}
-            onMouseEnter={() => setHoveredNode(node.id)}
-            onMouseLeave={() => setHoveredNode(null)}
-          >
-            <circle
-              cx={node.x}
-              cy={node.y}
-              r={node.authors.length*15+30}
-              fill={hoveredNode === node.id ? primaryColorHover : primaryColor}
-              stroke={hoveredNode === node.id ? primaryColorHover : "transparent"}
-              strokeWidth="3"
-              filter={hoveredNode === node.id ? "url(#glow)" : "none"}
-              overflow="wrap"
+    <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+      <svg
+        ref={svgRef}
+        width="100%"
+        height="100%"
+        viewBox="0 0 1600 1200"
+        onWheel={handleWheel}
+        onMouseDown={handleMouseDown}
+        style={{ cursor: 'move' }}
+      >
+        <defs>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+        <g transform={`translate(${transform.x},${transform.y}) scale(${transform.scale})`}>
+          {edges.map((edge, index) => (
+            <line
+              key={index}
+              x1={nodes[edge.source]?.x}
+              y1={nodes[edge.source]?.y}
+              x2={nodes[edge.target]?.x}
+              y2={nodes[edge.target]?.y}
+              stroke={primaryColor}
+              strokeWidth={calculateLineThickness(edge.strength)}
             />
-            <text
-            x={node.x}
-            y={node.y}
-            textAnchor="middle"
-            dominantBaseline="central"
-            fontSize="14"
-            fontWeight={hoveredNode === node.id ? "bold" : "normal"}
-            fill="white"
+          ))}
+          {nodes.map((node) => (
+            <g 
+              key={node.id}
+              onMouseEnter={() => setHoveredNode(node.id)}
+              onMouseLeave={() => setHoveredNode(null)}
             >
-            {wrapText(node.name, node.authors.length * 30 + 60).map((line, index) => (
-                <tspan
-                key={index}
+              <circle
+                cx={node.x}
+                cy={node.y}
+                r={node.authors.length * 15 + 30}
+                fill={node.id === originPaperIndex ? originColor : 
+                      (hoveredNode === node.id || hoveredPaperIndex === node.id) ? primaryColorHover : primaryColor}
+                stroke={
+                  node.id === originPaperIndex ? originColor :
+                  (hoveredNode === node.id || hoveredPaperIndex === node.id) ? primaryColorHover : "transparent"
+                }
+                strokeWidth="3"
+                filter={(hoveredNode === node.id || hoveredPaperIndex === node.id) ? "url(#glow)" : "none"}
+              />
+              <text
                 x={node.x}
-                dy={index === 0 ? 0 : '1.2em'}
-                >
-                {line}
-                </tspan>
-            ))}
-            </text>
-          </g>
-        ))}
-      </g>
-    </svg>
+                y={node.y}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize="14"
+                fontWeight={(hoveredNode === node.id || hoveredPaperIndex === node.id) ? "bold" : "normal"}
+                fill="white"
+              >
+                {wrapText(node.name, node.authors.length * 30 + 60).map((line, index) => (
+                  <tspan
+                    key={index}
+                    x={node.x}
+                    dy={index === 0 ? 0 : '1.2em'}
+                  >
+                    {line}
+                  </tspan>
+                ))}
+              </text>
+            </g>
+          ))}
+        </g>
+      </svg>
+    </div>
   );
 };
 

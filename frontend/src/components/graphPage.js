@@ -8,17 +8,22 @@ const GraphPage = () => {
   const [expandedPaper, setExpandedPaper] = useState(null);
   const [papers, setPapers] = useState([]);
   const [matrix, setMatrix] = useState([]);
+  const [hoveredPaperIndex, setHoveredPaperIndex] = useState(null);
+  const [originPaperIndex, setOriginPaperIndex] = useState(null);
 
   const location = useLocation();
 
   useEffect(() => {
-    if (location.state && location.state.searchResults) {
-      const { papers, matrix} = location.state.searchResults;
+    if (location.state && location.state.graphData) {
+      const { papers, matrix } = location.state.graphData;
       setPapers(papers);
       setMatrix(matrix);
+      // Use the originPaperIndex passed from the Results page
+      setOriginPaperIndex(location.state.originPaperIndex);
     }
   }, [location]);
-  console.log(papers);
+
+  const originColor = '#FF4500';  // Bright orange-red for the origin paper
 
   return (
     <div className="flex h-screen bg-white relative">
@@ -29,7 +34,15 @@ const GraphPage = () => {
             <div className="p-4">
               <div className="space-y-4">
                 {papers.map((paper, index) => (
-                  <div key={index} className="card bg-white shadow-sm">
+                  <div 
+                    key={index} 
+                    className={`card bg-white shadow-sm ${index === originPaperIndex ? 'border-2 border-orange-500' : ''}`}
+                    onMouseEnter={() => setHoveredPaperIndex(index)}
+                    onMouseLeave={() => setHoveredPaperIndex(null)}
+                    style={{
+                      backgroundColor: index === originPaperIndex ? 'rgba(255, 69, 0, 0.1)' : 'white'
+                    }}
+                  >
                     <div className="card-body p-4">
                       <div className="flex justify-between items-center">
                         <h3 className="card-title text-sm text-black font-Fustat">
@@ -63,12 +76,17 @@ const GraphPage = () => {
           onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
           className={`absolute top-1/2 -translate-y-1/2 transition-all duration-300 bg-white hover:bg-white p-2 rounded-r-md shadow-lg ${leftSidebarOpen ? 'right-0 translate-x-full' : 'left-0'}`}
         >
-          <span className="text-2xl text-black">{leftSidebarOpen ? '◀' : '▶'}</span>
+          <span className="text-2xl text-primary">{leftSidebarOpen ? '◀' : '▶'}</span>
         </button>
       </div>
       {/* Main Content Area */}
       <div className="flex-grow p-4 overflow-auto">
-        <Graph papers={papers} matrix={matrix} />
+        <Graph 
+          papers={papers} 
+          matrix={matrix} 
+          hoveredPaperIndex={hoveredPaperIndex}
+          originPaperIndex={originPaperIndex}
+        />
       </div>
       {/* Right Sidebar (AI Chatbot) and Toggle Button */}
       <div className="relative h-full">
@@ -76,7 +94,7 @@ const GraphPage = () => {
           onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
           className={`absolute top-1/2 -translate-y-1/2 transition-all duration-300 bg-white hover:bg-white p-2 rounded-l-md shadow-lg ${rightSidebarOpen ? 'left-0 -translate-x-full' : 'right-0'}`}
         >
-          <span className="text-2xl text-black">{rightSidebarOpen ? '▶' : '◀'}</span>
+          <span className="text-2xl text-primary">{rightSidebarOpen ? '▶' : '◀'}</span>
         </button>
         <div className={`bg-white transition-all duration-300 h-full ${rightSidebarOpen ? 'w-80' : 'w-0'} overflow-hidden shadow-lg flex flex-col`}>
           <div className="flex-grow overflow-y-auto">
