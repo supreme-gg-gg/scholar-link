@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+import heapq
 
 app = Flask(__name__)
 
@@ -8,8 +9,9 @@ class Paper:
         self.citations = citations
         self.cited_by = []  # Papers that cite this paper
 
+# makes paper list into matrix of distances
 def process_papers(papers: list[Paper]):
-    matrix = [[0 for _ in range(len(papers))] for _ in range(len(papers))]
+    matrix = [[10000 for _ in range(len(papers))] for _ in range(len(papers))]
     paper_dict = {}
     
     for i in range(len(papers)):
@@ -19,37 +21,56 @@ def process_papers(papers: list[Paper]):
         for j in range(len(papers[i].citations)):
             if papers[i].citations[j] in paper_dict:
                 papers[paper_dict[papers[i].citations[j]]].cited_by.append(papers[i].name)
-    print(papers)
 
     for i in range(len(papers)):
         paper_dict[papers[i].name] = [papers[i], i]
     
-    # Process all papers
     for i in range(len(papers)):
         for j in range(len(papers[i].citations)):
             if papers[i].citations[j] in paper_dict:
-                print(papers[i].name + " cites " + papers[i].citations[j])
-                matrix[paper_dict[papers[i].citations[j]][1]][i] += 1
-                matrix[i][paper_dict[papers[i].citations[j]][1]] += 1
+                matrix[paper_dict[papers[i].citations[j]][1]][i] /= 2
+                matrix[i][paper_dict[papers[i].citations[j]][1]] /= 2
                 for k in range(j+1, len(papers[i].citations)):
                     if papers[i].citations[k] in paper_dict:
-                        print(papers[i].citations[j] + " cited along with " + papers[i].citations[k] + " by paper " + papers[i].name)
-                        matrix[paper_dict[papers[i].citations[k]][1]][paper_dict[papers[i].citations[j]][1]] += 1
-                        matrix[paper_dict[papers[i].citations[j]][1]][paper_dict[papers[i].citations[k]][1]] += 1
+                        matrix[paper_dict[papers[i].citations[k]][1]][paper_dict[papers[i].citations[j]][1]] /= 2
+                        matrix[paper_dict[papers[i].citations[j]][1]][paper_dict[papers[i].citations[k]][1]] /= 2
         
         for j in range(len(papers[i].cited_by)):
             if papers[i].cited_by[j] in paper_dict:
                 for k in range(j + 1, len(papers[i].cited_by)):
                     if papers[i].cited_by[k] in paper_dict:
-                        print(papers[i].cited_by[j] + " and " + papers[i].cited_by[k] + " both cite " + papers[i].name)
-                        matrix[paper_dict[papers[i].cited_by[k]][1]][paper_dict[papers[i].cited_by[j]][1]] += 1
-                        matrix[paper_dict[papers[i].cited_by[j]][1]][paper_dict[papers[i].cited_by[k]][1]] += 1
+                        matrix[paper_dict[papers[i].cited_by[k]][1]][paper_dict[papers[i].cited_by[j]][1]] /= 2
+                        matrix[paper_dict[papers[i].cited_by[j]][1]][paper_dict[papers[i].cited_by[k]][1]] /= 2
                 
     
     return {
         'matrix': matrix,
         'paper_names': [paper.name for paper in papers]
     }
+
+# find k nearest neighbors using dijkstra
+def dijkstra(matrix, start, k):
+    n = len(matrix)
+    distances = [float('inf')] * n
+    min_heap = [(0, start)]
+    result = []
+
+    while min_heap:
+        dist, node = heapq.heappop(min_heap)
+        print(node)
+        if len(result) == k:
+            break
+
+        if dist < distances[node]: 
+            distances[node] = dist
+            result.append([node, distances[node]])
+
+            # Explore neighbors
+            for i in range(n):
+                if i != node and dist + matrix[node][i] < distances[i]:
+                    heapq.heappush(min_heap, (dist + matrix[node][i], i))
+
+    return result
 
 papers = [
     Paper("Paper A", ["Paper B", "Paper C", "Paper D"]),
@@ -59,7 +80,7 @@ papers = [
     Paper("Paper E", [])
 ]
 
-result = process_papers(papers)
+result = dijkstra(process_papers(papers)["matrix"], 0, 3)
 
 print(result)
 
