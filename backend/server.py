@@ -54,6 +54,7 @@ def clean_text(text):
 def search_arxiv(query, start, max_results):
     base_url = "http://export.arxiv.org/api/query?"
     search_query = f"search_query=all:{query}&start={start}&max_results={max_results}"
+    print(base_url + search_query)
     for attempt in range(5):  # Try up to 5 times
         try:
             response = requests.get(base_url + search_query)
@@ -71,10 +72,9 @@ def search_arxiv(query, start, max_results):
     feed = feedparser.parse(response.content)
     papers = []
 
-    for entry in feed.entries:
+    print(feed)
 
-        with open("output.json", "w") as file:
-            json.dump(entry, file)
+    for entry in feed.entries:
         
         paper = Paper(
             name=clean_text(entry.title),
@@ -325,15 +325,15 @@ def make_graph():
 
     return jsonify(response)
 
-nlp = spacy.load("en_core_web_sm")
+@app.route('/prompt-deprecated', methods=['POST'])
+def prompt_deprecated():
 
-@app.route('/prompt', methods=['POST'])
-def prompt():
+    nlp = spacy.load("en_core_web_sm")
     data = request.json
     user_input = data['prompt']
     
-    # Process input with NLP
-    keywords = extract_keywords(user_input)
+    doc = nlp(user_input)
+    keywords = [token.text for token in doc if token.is_alpha and not token.is_stop]
 
     print(f"Keyword extracted are {keywords}")
     
@@ -342,10 +342,42 @@ def prompt():
 
     return jsonify(results)
 
-def extract_keywords(text):
-    doc = nlp(text)
-    keywords = [token.text for token in doc if token.is_alpha and not token.is_stop]
-    return keywords
+@app.route('/prompt', methods=["POST"])
+def prompt():
+    import subprocess
+
+    data = request.get_json()
+    user_input = data["prompt"]
+
+    # Trigger the Streamlit script using subprocess
+    result = subprocess.run(
+        ["python3", "streamlit_script.py", user_input], capture_output=True, text=True
+    )
+
+    # Get the output from the Streamlit script
+    processed_output = result.stdout
+
+    # Parse the JSON output from the script
+    try:
+        processed_data = json.loads(processed_output)
+    except json.JSONDecodeError:
+        return jsonify({"error": "Failed to parse output."}), 500
+
+    keyword = processed_data["keywords"]
+    result = ", ".join(f"'{item}'" for item in keyword)
+    print(f"Received keyword: {result}")
+    papers = create_papers(result, 10)
+    data = process_papers(papers, 0, 10)
+    papers_json = [paper.to_dict() for paper in papers if paper.name in data["paper_names"]]
+
+    response = {
+        "total_papers": len(papers_json),
+        "source": "arXiv",
+        "papers": papers_json, # only returns the papers that we have selected from the algorithm
+        "matrix": data["matrix"]
+    }
+
+    return jsonify(response)
 
 if __name__ == '__main__':
     app.run(debug=True)
