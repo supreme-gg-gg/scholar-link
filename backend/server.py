@@ -20,7 +20,7 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 
 class Paper:
-    def __init__(self, name, original_name, summary, pdf, published, authors, citations, cite_cnt=None):
+    def __init__(self, name, original_name, summary, pdf, published, authors, citations, link, cite_cnt=None):
         self.name = name
         self.original_name = original_name
         self.summary = summary
@@ -29,6 +29,7 @@ class Paper:
         self.authors = authors
         self.citations = citations
         self.cite_cnt = cite_cnt
+        self.link = link
         self.cited_by = []  # Papers that cite this paper
 
     def to_dict(self):
@@ -37,7 +38,8 @@ class Paper:
             "authors": self.authors,
             "summary": self.summary,
             "date": self.published,
-            "cited_by": self.cite_cnt
+            "cited_by": self.cite_cnt,
+            "link": self.link
         }
 
 def clean_text(text):
@@ -76,6 +78,7 @@ def search_arxiv(query, start, max_results):
             pdf=entry.links[1].href,  # returns PDF link for further parsing
             published=entry.published,
             authors=[author.name for author in entry.authors],
+            link = entry.links[0].href,
             citations=[]  # Initialize with an empty list for citations
         )
         papers.append(paper)
@@ -321,12 +324,14 @@ def make_graph():
 nlp = spacy.load("en_core_web_sm")
 
 @app.route('/prompt', methods=['POST'])
-def search():
+def prompt():
     data = request.json
-    user_input = data['query']
+    user_input = data['prompt']
     
     # Process input with NLP
     keywords = extract_keywords(user_input)
+
+    print(f"Keyword extracted are {keywords}")
     
     # Query your external database with keywords
     results = create_papers(keywords)
