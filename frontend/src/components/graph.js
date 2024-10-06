@@ -136,13 +136,13 @@ const Graph = ({
 
   const calculateLineThickness = (strength) => {
     const minThickness = 1;
-    const maxThickness = 5; // Reduced maximum thickness
+    const maxThickness = 10; // Reduced maximum thickness
     const minStrength = Math.min(...edges.map((e) => e.strength));
     const maxStrength = Math.max(...edges.map((e) => e.strength));
 
     return (
       minThickness +
-      ((strength - minStrength) / (maxStrength - minStrength)) *
+      ((maxStrength-strength) / (maxStrength - minStrength)) *
         (maxThickness - minThickness)
     );
   };
