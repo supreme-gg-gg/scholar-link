@@ -3,6 +3,7 @@ from flask_cors import CORS
 import json
 
 from scrape_paper import process_papers, create_papers
+from nlp_utils import nlp_process_text, count_keyword_frequencies
 
 app = Flask(__name__)
 
@@ -67,26 +68,19 @@ def graph_data():
 @app.route('/prompt', methods=["POST"])
 def prompt():
     global papers
-    import subprocess
 
     data = request.get_json()
     user_input = data["prompt"]
 
-    # Trigger the Streamlit script using subprocess
-    result = subprocess.run(
-        ["python3", "streamlit_script.py", user_input], capture_output=True, text=True
-    )
-
-    # Get the output from the Streamlit script
-    processed_output = result.stdout
+    response = nlp_process_text(user_input)
 
     # Parse the JSON output from the script
     try:
-        processed_data = json.loads(processed_output)
+        data = json.loads(response)
     except json.JSONDecodeError:
         return jsonify({"error": "Failed to parse output."}), 500
 
-    keyword = processed_data["keywords"]
+    keyword = data["keywords"]
     result = ", ".join(f"'{item}'" for item in keyword)
     print(f"Received keyword: {result}")
     papers = create_papers(result, 10)
@@ -95,17 +89,12 @@ def prompt():
 
 @app.route('/paper_keywords', methods=['POST'])
 def paper_keywords():
-    import subprocess
     data = request.json
     paper_index = data['index']
     paper = papers[paper_index]
-   
-    # Process the paper's text to get keywords and frequencies
-    result = subprocess.run(
-        ["python3", "streamlit_script.py", paper.summary],
-        capture_output=True, text=True
-    )
-    processed_data = json.loads(result.stdout)
+
+    response = count_keyword_frequencies(paper.summary)
+    processed_data = json.loads(response)
    
     return jsonify(processed_data)
 
