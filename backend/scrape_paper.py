@@ -169,7 +169,7 @@ def extract_citations_from_text(text):
 def fetch_batch(query, start, batch_size):
     return search_arxiv(query, start, batch_size)
 
-def create_papers(query, limit=10, batch_size=10):
+def create_papers(query, limit=20, batch_size=20):
     print("FETCHING START")
     
     def process_paper(paper):
