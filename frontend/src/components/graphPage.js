@@ -252,7 +252,7 @@ const GraphPage = () => {
               }`}
               onClick={() => handleTabChange("Tab 3")}
             >
-              Tab 3
+              Keywords
             </a>
           </div>
         </div>
@@ -300,7 +300,7 @@ const GraphPage = () => {
                     }`}
                     onClick={() => handleTabChange("Tab 3")}
                   >
-                    Tab 3
+                    Keywords
                   </a>
                 </div>
               </div>
