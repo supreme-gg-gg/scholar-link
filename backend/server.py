@@ -7,7 +7,7 @@ from scrape_paper import process_papers, create_papers
 app = Flask(__name__)
 
 # Allow requests from your React frontend
-CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
+CORS(app)
 
 papers = []
 
@@ -99,15 +99,34 @@ def paper_keywords():
     data = request.json
     paper_index = data['index']
     paper = papers[paper_index]
+    print(paper)
    
     # Process the paper's text to get keywords and frequencies
     result = subprocess.run(
         ["python3", "streamlit_script.py", paper.summary],
         capture_output=True, text=True
     )
+    print(result)
     processed_data = json.loads(result.stdout)
+    print(processed_data)
    
     return jsonify(processed_data)
+
+@app.route('/set_paper_index', methods=['POST'])
+def set_paper_index():
+    global current_paper_index
+    data = request.get_json()
+    index = data.get('index')
+    if index is not None:
+        current_paper_index = index
+        return jsonify({"message": "Paper index set sucessfully"}), 200
+    else:
+        return jsonify({"error": "No index provided"}), 400
+
+@app.route('/get_paper_index', methods=['GET'])
+def get_paper_index():
+    global current_paper_index
+    return jsonify({"index": current_paper_index}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
