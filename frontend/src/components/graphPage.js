@@ -1,16 +1,13 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import Graph from "./graph";
 import ChatBotEmbed from "./chatbot";
 import StreamlitEmbed from "./streamlit";
 import BarGraphEmbed from "./bargraph";
 
-const BORDER_SIZE = 4;
-
 const GraphPage = () => {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
   const [rightSidebarOpen, setRightSidebarOpen] = useState(true);
-  const [rightSidebarWidth, setRightSidebarWidth] = useState(320); // Default width
   const [expandedPaper, setExpandedPaper] = useState(null);
   const [papers, setPapers] = useState([]);
   const [matrix, setMatrix] = useState([]);
@@ -127,44 +124,6 @@ const GraphPage = () => {
       setIsModalOpen(true);
     }
   };
-
-  const [rightPanelWidth, setRightPanelWidth] = useState(320); // Default width
-  const rightPanelRef = useRef(null);
-  const isResizingRef = useRef(false);
-
-  const handleMouseDown = useCallback((e) => {
-    // Check if the click is within the resize border area
-    const rect = rightPanelRef.current.getBoundingClientRect();
-    if (Math.abs(e.clientX - rect.left) <= BORDER_SIZE) {
-      isResizingRef.current = true;
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-    }
-  }, []);
-
-  const handleMouseMove = useCallback((e) => {
-    if (!isResizingRef.current) return;
-    const newWidth = window.innerWidth - e.clientX;
-    setRightPanelWidth(Math.max(200, Math.min(newWidth, 600))); // Min 200px, Max 600px
-  }, []);
-
-  const handleMouseUp = useCallback(() => {
-    isResizingRef.current = false;
-    document.removeEventListener("mousemove", handleMouseMove);
-    document.removeEventListener("mouseup", handleMouseUp);
-  }, [handleMouseMove]);
-
-  useEffect(() => {
-    const rightPanel = rightPanelRef.current;
-    if (rightPanel) {
-      rightPanel.addEventListener("mousedown", handleMouseDown);
-    }
-    return () => {
-      if (rightPanel) {
-        rightPanel.removeEventListener("mousedown", handleMouseDown);
-      }
-    };
-  }, [handleMouseDown]);
 
   return (
     <div className="flex h-screen bg-white relative">
@@ -283,7 +242,7 @@ const GraphPage = () => {
               }`}
               onClick={() => handleTabChange("Research Activity")}
             >
-              Activity Over Time
+              Research Activity
             </a>
             <a
               className={`tab ${
@@ -293,7 +252,7 @@ const GraphPage = () => {
               }`}
               onClick={() => handleTabChange("Tab 3")}
             >
-              Keywords
+              Tab 3
             </a>
           </div>
         </div>
@@ -331,7 +290,7 @@ const GraphPage = () => {
                     }`}
                     onClick={() => handleTabChange("Research Activity")}
                   >
-                    Activity over Time
+                    Research Activity
                   </a>
                   <a
                     className={`tab ${
@@ -341,7 +300,7 @@ const GraphPage = () => {
                     }`}
                     onClick={() => handleTabChange("Tab 3")}
                   >
-                    Keywords
+                    Tab 3
                   </a>
                 </div>
               </div>
@@ -351,60 +310,38 @@ const GraphPage = () => {
           </div>
         )}
       </div>
-      {/* Draggable Divider
-      {rightSidebarOpen && (
-        <div
-          ref={dividerRef}
-          className="w-1 bg-gray-300 cursor-col-resize hover:bg-gray-400 transition-colors"
-          style={{ cursor: 'col-resize' }}
-        ></div>
-      )} */}
 
-
-      {/* Right Panel (AI Chatbot) */}
-      <div className="relative h-full">
-        {rightSidebarOpen && (
-          <div
-            ref={rightPanelRef}
-            className="bg-[#f0f0ff] h-full overflow-hidden shadow-lg flex flex-col absolute right-0 top-0 bottom-0"
-            style={{ 
-              width: `${rightPanelWidth}px`,
-            }}
-          >
-            {/* Resizable border */}
-            <div 
-              className="absolute left-0 w-1 h-full cursor-ew-resize bg-[#ccc] hover:bg-gray-400 transition-colors"
-              style={{ width: `${BORDER_SIZE}px` }}
-            />
-
-            {/* Navbar */}
-            <div className="p-4 border-b">
-              <h2 className="text-lg font-semibold text-black">AI Assistant</h2>
-            </div>
-            {/* Scrollable content */}
-            <div className="flex-grow overflow-y-auto">
-              <div className="p-4 text-black/70 font-Fustat">
-                {/* Placeholder for AI Chatbot */}
-                <div className="bg-gray-100 p-4 rounded">
-                  <ChatBotEmbed />
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Toggle button for right panel */}
+      {/* Right Sidebar (AI Chatbot) and Toggle Button */}
+      <div className="relative h-full flex flex-col">
         <button
           onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
-          className="absolute top-1/2 -translate-y-1/2 transition-all duration-300 bg-white hover:bg-white p-2 rounded-l-md shadow-lg z-10"
-          style={{ 
-            right: rightSidebarOpen ? `${rightPanelWidth}px` : '0',
-          }}
+          className={`absolute top-1/2 -translate-y-1/2 transition-all duration-300 bg-white hover:bg-white p-2 rounded-l-md shadow-lg ${
+            rightSidebarOpen ? "left-0 -translate-x-full" : "right-0"
+          }`}
         >
           <span className="text-2xl text-primary">
             {rightSidebarOpen ? "▶" : "◀"}
           </span>
         </button>
+        <div
+          className={`bg-white transition-all duration-300 h-full ${
+            rightSidebarOpen ? "w-80" : "w-0"
+          } overflow-hidden shadow-lg flex flex-col`}
+        >
+          {/* Navbar */}
+          <div className="p-4 border-b">
+            <h2 className="text-lg font-semibold text-black">AI Chatbot</h2>
+          </div>
+          {/* Scrollable content */}
+          <div className="flex-grow overflow-y-auto">
+            <div className="p-4 text-black/70 font-Fustat">
+              {/* Placeholder for AI Chatbot */}
+              <div className="bg-gray-100 p-4 rounded">
+                <ChatBotEmbed />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

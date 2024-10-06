@@ -38,7 +38,7 @@ def search_papers():
     req = request.get_json()
     keyword = req.get("keyword")
     print(f"Received keyword: {keyword}")
-    papers = create_papers(keyword, 20)
+    papers = create_papers(keyword, 10)
     papers_json = [paper.to_dict() for paper in papers]
     return jsonify(papers_json)
 
@@ -46,7 +46,7 @@ def search_papers():
 def make_graph():
     req = request.get_json()
     index= req.get("index")
-    data = process_papers(papers, index, 20)
+    data = process_papers(papers, index, 10)
     papers_json = [paper.to_dict() for paper in papers if paper.name in data["paper_names"]]
 
     response = {
