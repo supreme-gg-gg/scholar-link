@@ -41,8 +41,19 @@ const GraphPage = () => {
       setMatrix(matrix);
       setAllPapers(papers);
       setOriginPaperIndex(location.state.originPaperIndex);
-    }
-  }, [location]);
+        if (papers[originIndex] && papers[originIndex].link) {
+          fetch('http://127.0.0.1:5000/set-url', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ url: papers[originIndex].link }),
+          }).then(response => response.json())
+            .then(data => console.log(data))
+            .catch((error) => console.error('Error:', error));
+        }
+      }
+    }, [location]);
 
   useEffect(() => {
     if (

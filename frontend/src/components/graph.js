@@ -11,7 +11,7 @@ const Graph = ({
   const [edges, setEdges] = useState([]);
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
   const [hoveredNode, setHoveredNode] = useState(null);
-  const svgRef = useRef(null);
+  const svgRef = useRef();
 
   const primaryColor = "#7884fc";
   const primaryColorHover = "#4657FB";
