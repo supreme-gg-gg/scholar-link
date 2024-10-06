@@ -68,6 +68,7 @@ _By following these steps, you can efficiently navigate through research literat
 
 ## Contact Us
 
-- [Jet Chiang](www.linkedin.com/in/jet-chiang)
+- [Jet Chiang](https://www.linkedin.com/in/jet-chiang/)
 - [Eddy Zheng](https://www.linkedin.com/in/eddy-zheng-4749072b3/)
 - [Chi McIssac](https://www.linkedin.com/in/chimcisaac/)
+- [Jay Savaliya](https://www.linkedin.com/in/jsavaliya/)
