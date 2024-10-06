@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, redirect
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import json
 
@@ -99,16 +99,13 @@ def paper_keywords():
     data = request.json
     paper_index = data['index']
     paper = papers[paper_index]
-    print(paper)
    
     # Process the paper's text to get keywords and frequencies
     result = subprocess.run(
         ["python3", "streamlit_script.py", paper.summary],
         capture_output=True, text=True
     )
-    print(result)
     processed_data = json.loads(result.stdout)
-    print(processed_data)
    
     return jsonify(processed_data)
 

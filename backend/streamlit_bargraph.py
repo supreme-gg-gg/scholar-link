@@ -8,7 +8,7 @@ st.set_page_config(page_title="Keyword Frequencies", layout="wide")
 
 
 # Fetch data from Flask API
-api_url = "http://127.0.0.1:5000/paper_keywords?keyword={search_keyword}"
+api_url = "http://127.0.0.1:5000/paper_keywords"
 try:
     response = requests.post(api_url, json={"index": 0})
     if response.status_code == 200:
