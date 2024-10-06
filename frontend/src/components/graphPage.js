@@ -5,12 +5,13 @@ import ChatBotEmbed from "./chatbot";
 
 const StreamlitEmbed = () => {
   return (
-    <div className="w-full h-full bg-white p-4 rounded-lg shadow-md">
+    <div style={{ width: "100%", height: "100%" }}>
       <iframe
         src="http://localhost:8501"
-        className="w-full h-full border-0"
-        title="Streamlit Embed"
-      />
+        width="100%"
+        height="100%"
+        frameBorder="0"
+      ></iframe>
     </div>
   );
 };
@@ -26,13 +27,10 @@ const GraphPage = () => {
   const [allPapers, setAllPapers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("Force Directed");
-  const [chatboxWidth, setChatboxWidth] = useState(320); // Initial width of the chatbox
-  const [isResizing, setIsResizing] = useState(false);
 
   const location = useLocation();
   const paperRefs = useRef({});
   const sidebarContentRef = useRef(null);
-  const resizeHandleRef = useRef(null);
 
   useEffect(() => {
     if (location.state && location.state.graphData) {
@@ -41,19 +39,8 @@ const GraphPage = () => {
       setMatrix(matrix);
       setAllPapers(papers);
       setOriginPaperIndex(location.state.originPaperIndex);
-        if (papers[originIndex] && papers[originIndex].link) {
-          fetch('http://127.0.0.1:5000/set-url', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ url: papers[originIndex].link }),
-          }).then(response => response.json())
-            .then(data => console.log(data))
-            .catch((error) => console.error('Error:', error));
-        }
-      }
-    }, [location]);
+    }
+  }, [location]);
 
   useEffect(() => {
     if (
@@ -79,29 +66,6 @@ const GraphPage = () => {
     }
   }, [expandedPaper]);
 
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (isResizing) {
-        const newWidth = window.innerWidth - e.clientX;
-        setChatboxWidth(Math.max(200, Math.min(newWidth, 600))); // Limit width between 200px and 600px
-      }
-    };
-
-    const handleMouseUp = () => {
-      setIsResizing(false);
-    };
-
-    if (isResizing) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-    }
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isResizing]);
-
   const handleSetAsOrigin = async (index) => {
     try {
       const response = await fetch("http://127.0.0.1:5000/graph", {
@@ -121,6 +85,7 @@ const GraphPage = () => {
       setPapers(newGraphData.papers);
       setMatrix(newGraphData.matrix);
 
+      // Find the index of the new origin paper
       const newOriginIndex = newGraphData.papers.findIndex(
         (paper) => paper.index === allPapers[index].index
       );
@@ -135,7 +100,28 @@ const GraphPage = () => {
   const handleNodeClick = (index) => {
     setExpandedPaper(index);
     setLeftSidebarOpen(true);
-    fetchKeywordData(index);
+   
+    const paper = papers[index];
+   
+    if (paper) {
+      const url = paper.pdf || paper.link;
+      if (url) {
+        fetch('http://localhost:5000/send-url', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ url: url }),
+        })
+        .then(response => response.json())
+        .then(data => console.log('URL sent successfully:', data))
+        .catch(error => console.error('Error sending URL:', error));
+      } else {
+        console.error(`No PDF or regular link found for paper at index: ${index}`);
+      }
+    } else {
+      console.error(`Paper not found for index: ${index}`);
+    }
   };
 
   const handleTabChange = (tabName) => {
@@ -306,18 +292,8 @@ const GraphPage = () => {
         )}
       </div>
 
-      {/* Resize Handle */}
-      <div
-        ref={resizeHandleRef}
-        className="w-1 bg-gray-300 cursor-col-resize hover:bg-gray-400 transition-colors"
-        onMouseDown={() => setIsResizing(true)}
-      />
-
       {/* Right Sidebar (AI Chatbot) and Toggle Button */}
-      <div 
-        className="relative h-full flex flex-col transition-all duration-300" 
-        style={{ width: rightSidebarOpen ? `${chatboxWidth}px` : '0' }}
-      >
+      <div className="relative h-full flex flex-col">
         <button
           onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
           className={`absolute top-1/2 -translate-y-1/2 transition-all duration-300 bg-white hover:bg-white p-2 rounded-l-md shadow-lg ${
@@ -329,7 +305,9 @@ const GraphPage = () => {
           </span>
         </button>
         <div
-          className={`bg-white h-full overflow-hidden shadow-lg flex flex-col`}
+          className={`bg-white transition-all duration-300 h-full ${
+            rightSidebarOpen ? "w-80" : "w-0"
+          } overflow-hidden shadow-lg flex flex-col`}
         >
           {/* Navbar */}
           <div className="p-4 border-b">
