@@ -257,7 +257,6 @@ const GraphPage = () => {
               matrix={matrix} 
               hoveredPaperIndex={hoveredPaperIndex}
               originPaperIndex={originPaperIndex}
-              onNodeClick={handleNodeClick}
             />
           )}
         </div>
@@ -311,7 +310,7 @@ const GraphPage = () => {
         >
           {/* Navbar */}
           <div className="p-4 border-b">
-            <h2 className="text-lg font-semibold text-black">AI Chatbot</h2>
+            <h2 className="text-lg font-semibold text-black">AI Assistant</h2>
           </div>
           {/* Scrollable content */}
           <div className="flex-grow overflow-y-auto">
