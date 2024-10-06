@@ -69,10 +69,7 @@ def query_message(content):
 if pdf_url:
 
     if post_pdf(pdf_url):
-        st.success("PDF Loaded Successfully!")
-
-    # Allow users to interact with the content of the paper
-    st.write("You can now ask questions about the research paper!")
+        st.success("Paper Loaded Successfully!")
 
     user_input = st.text_input("Ask a question about the research paper:")
 
