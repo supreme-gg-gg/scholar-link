@@ -74,7 +74,7 @@ def prompt():
 
     # Trigger the Streamlit script using subprocess
     result = subprocess.run(
-        ["python3", "backend/streamlit_script.py", user_input], capture_output=True, text=True
+        ["python3", "streamlit_script.py", user_input], capture_output=True, text=True
     )
 
     # Get the output from the Streamlit script

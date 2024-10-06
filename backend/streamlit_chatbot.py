@@ -2,8 +2,7 @@ import requests
 import streamlit as st
 import os
 from dotenv import load_dotenv
-
-# Load environment variables from .env file
+# Load environment variables from a .env file
 load_dotenv()
 api_key = os.getenv("API_KEY")
 
@@ -23,6 +22,31 @@ headers = {
     'x-api-key': api_key,
     "Content-Type": "application/json",
 }
+
+st.markdown("""
+<style>
+    .reportview-container {
+        background: #f0f2f6;
+    }
+    .main {
+        background: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+        color: #1f4387;
+        font-family: 'Helvetica Neue', sans-serif;
+    }
+    .stPlotlyChart {
+        background: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+</style>
+""", unsafe_allow_html=True)
 
 def post_pdf(url):
 
