@@ -30,6 +30,7 @@ class Paper:
             "authors": self.authors,
             "summary": self.summary,
             "date": self.published,
+            "pdf": self.pdf,
             "cited_by": self.cite_cnt,
             "link": self.link,
             "index": self.index,

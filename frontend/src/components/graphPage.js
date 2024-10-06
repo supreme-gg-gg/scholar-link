@@ -89,24 +89,27 @@ const GraphPage = () => {
   const handleNodeClick = (index) => {
     setExpandedPaper(index);
     setLeftSidebarOpen(true);
-   
+
     const paper = papers[index];
-   
+
     if (paper) {
-      const url = paper.pdf || paper.link;
+      const url = paper.pdf;
+      console.log(url);
       if (url) {
-        fetch('http://localhost:5000/send-url', {
-          method: 'POST',
+        fetch("http://127.0.0.1:5000/send-url", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({ url: url }),
         })
-        .then(response => response.json())
-        .then(data => console.log('URL sent successfully:', data))
-        .catch(error => console.error('Error sending URL:', error));
+          .then((response) => response.json())
+          .then((data) => console.log("URL sent successfully:", data))
+          .catch((error) => console.error("Error sending URL:", error));
       } else {
-        console.error(`No PDF or regular link found for paper at index: ${index}`);
+        console.error(
+          `No PDF or regular link found for paper at index: ${index}`
+        );
       }
     } else {
       console.error(`Paper not found for index: ${index}`);
@@ -207,7 +210,9 @@ const GraphPage = () => {
         {/* Toggle button for left sidebar */}
         <button
           onClick={() => setLeftSidebarOpen(!leftSidebarOpen)}
-          className={`absolute top-1/2 -translate-y-1/2 bg-white hover:bg-white p-2 rounded-r-md shadow-lg z-50 ${leftSidebarOpen ? 'right-0 translate-x-full' : 'left-0'}`}
+          className={`absolute top-1/2 -translate-y-1/2 bg-white hover:bg-white p-2 rounded-r-md shadow-lg z-50 ${
+            leftSidebarOpen ? "right-0 translate-x-full" : "left-0"
+          }`}
         >
           <span className="text-2xl text-primary">
             {leftSidebarOpen ? "◀" : "▶"}
@@ -219,20 +224,32 @@ const GraphPage = () => {
       <div className="flex-grow p-4 overflow-hidden relative">
         <div className="fixed top-16 left-0 right-0 flex justify-center z-10">
           <div role="tablist" className="tabs tabs-bordered">
-            <a 
-              className={`tab ${activeTab === "Force Directed" ? "tab-active text-black font-Fustat font-semibold" : ""}`}
+            <a
+              className={`tab ${
+                activeTab === "Force Directed"
+                  ? "tab-active text-black font-Fustat font-semibold"
+                  : ""
+              }`}
               onClick={() => handleTabChange("Force Directed")}
             >
               Force Directed
             </a>
-            <a 
-              className={`tab ${activeTab === "Research Activity" ? "tab-active text-black font-Fustat font-semibold" : ""}`}
+            <a
+              className={`tab ${
+                activeTab === "Research Activity"
+                  ? "tab-active text-black font-Fustat font-semibold"
+                  : ""
+              }`}
               onClick={() => handleTabChange("Research Activity")}
             >
               Research Activity
             </a>
-            <a 
-              className={`tab ${activeTab === "Tab 3" ? "tab-active text-black font-Fustat font-semibold" : ""}`}
+            <a
+              className={`tab ${
+                activeTab === "Tab 3"
+                  ? "tab-active text-black font-Fustat font-semibold"
+                  : ""
+              }`}
               onClick={() => handleTabChange("Tab 3")}
             >
               Tab 3
@@ -241,9 +258,9 @@ const GraphPage = () => {
         </div>
         <div className="h-full overflow-auto">
           {activeTab === "Force Directed" && (
-            <Graph 
-              papers={papers} 
-              matrix={matrix} 
+            <Graph
+              papers={papers}
+              matrix={matrix}
               hoveredPaperIndex={hoveredPaperIndex}
               originPaperIndex={originPaperIndex}
               onNodeClick={handleNodeClick}
@@ -255,20 +272,32 @@ const GraphPage = () => {
             <div className="bg-white w-11/12 h-5/6 rounded-lg overflow-hidden relative">
               <div className="absolute top-4 left-0 right-0 flex justify-center z-10">
                 <div role="tablist" className="tabs tabs-bordered">
-                  <a 
-                    className={`tab ${activeTab === "Force Directed" ? "tab-active text-black font-Fustat font-semibold" : ""}`}
+                  <a
+                    className={`tab ${
+                      activeTab === "Force Directed"
+                        ? "tab-active text-black font-Fustat font-semibold"
+                        : ""
+                    }`}
                     onClick={() => handleTabChange("Force Directed")}
                   >
                     Force Directed
                   </a>
-                  <a 
-                    className={`tab ${activeTab === "Research Activity" ? "tab-active text-black font-Fustat font-semibold" : ""}`}
+                  <a
+                    className={`tab ${
+                      activeTab === "Research Activity"
+                        ? "tab-active text-black font-Fustat font-semibold"
+                        : ""
+                    }`}
                     onClick={() => handleTabChange("Research Activity")}
                   >
                     Research Activity
                   </a>
-                  <a 
-                    className={`tab ${activeTab === "Tab 3" ? "tab-active text-black font-Fustat font-semibold" : ""}`}
+                  <a
+                    className={`tab ${
+                      activeTab === "Tab 3"
+                        ? "tab-active text-black font-Fustat font-semibold"
+                        : ""
+                    }`}
                     onClick={() => handleTabChange("Tab 3")}
                   >
                     Tab 3
