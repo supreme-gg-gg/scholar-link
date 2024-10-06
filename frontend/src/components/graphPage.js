@@ -101,6 +101,7 @@ const GraphPage = () => {
   const handleNodeClick = (index) => {
     setExpandedPaper(index);
     setLeftSidebarOpen(true);
+    fetchKeywordData(index);
   };
 
 

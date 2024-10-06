@@ -93,5 +93,21 @@ def prompt():
     papers_json = [paper.to_dict() for paper in papers]
     return jsonify(papers_json)
 
+@app.route('/paper_keywords', methods=['POST'])
+def paper_keywords():
+    import subprocess
+    data = request.json
+    paper_index = data['index']
+    paper = papers[paper_index]
+   
+    # Process the paper's text to get keywords and frequencies
+    result = subprocess.run(
+        ["python3", "streamlit_script.py", paper.summary],
+        capture_output=True, text=True
+    )
+    processed_data = json.loads(result.stdout)
+   
+    return jsonify(processed_data)
+
 if __name__ == '__main__':
     app.run(debug=True)
