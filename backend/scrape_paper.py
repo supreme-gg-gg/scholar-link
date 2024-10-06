@@ -44,7 +44,6 @@ def clean_text(text):
 def search_arxiv(query, start, max_results):
     base_url = "http://export.arxiv.org/api/query?"
     search_query = f"search_query=all:{query}&start={start}&max_results={max_results}"
-    print(base_url + search_query)
     for attempt in range(5):  # Try up to 5 times
         try:
             response = requests.get(base_url + search_query)

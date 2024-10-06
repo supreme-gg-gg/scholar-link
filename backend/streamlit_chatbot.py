@@ -12,9 +12,11 @@ st.title("Ask the Paper...")
 
 # Create a placeholder for the PDF URL
 # pdf_url = st.query_params["data_url"] or st.empty()
-
-response = requests.get("http://127.0.0.1:5000/get-url")
-pdf_url = response.json().get("url")
+try:
+    response = requests.get("http://127.0.0.1:5000/get-url")
+    pdf_url = response.json().get("url")
+except:
+    st.write("Click on an entry to chat with it!")
 
 source_id = ""
 headers = {

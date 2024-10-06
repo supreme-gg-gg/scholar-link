@@ -1,19 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 
-const Graph = ({ papers, matrix, hoveredPaperIndex, originPaperIndex, onNodeClick }) => {
+const Graph = ({
+  papers,
+  matrix,
+  hoveredPaperIndex,
+  originPaperIndex,
+  onNodeClick,
+}) => {
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 1 });
   const [hoveredNode, setHoveredNode] = useState(null);
   const svgRef = useRef(null);
 
-  const primaryColor = '#7884fc';  
-  const primaryColorHover = '#4657FB';
-  const originColor = '#FF4500';  // Bright orange-red for the origin paper
+  const primaryColor = "#7884fc";
+  const primaryColorHover = "#4657FB";
+  const originColor = "#FF4500"; // Bright orange-red for the origin paper
 
-  console.log(papers);
   useEffect(() => {
-    if (!papers || !matrix || papers.length === 0 || matrix.length === 0) return;
+    if (!papers || !matrix || papers.length === 0 || matrix.length === 0)
+      return;
 
     const width = 1600;
     const height = 1200;
@@ -67,10 +73,22 @@ const Graph = ({ papers, matrix, hoveredPaperIndex, originPaperIndex, onNodeClic
               otherNode.y -= Math.sin(angle) * moveDistance * force;
 
               // Keep nodes within bounds
-              node.x = Math.max(nodeRadius, Math.min(width - nodeRadius, node.x));
-              node.y = Math.max(nodeRadius, Math.min(height - nodeRadius, node.y));
-              otherNode.x = Math.max(nodeRadius, Math.min(width - nodeRadius, otherNode.x));
-              otherNode.y = Math.max(nodeRadius, Math.min(height - nodeRadius, otherNode.y));
+              node.x = Math.max(
+                nodeRadius,
+                Math.min(width - nodeRadius, node.x)
+              );
+              node.y = Math.max(
+                nodeRadius,
+                Math.min(height - nodeRadius, node.y)
+              );
+              otherNode.x = Math.max(
+                nodeRadius,
+                Math.min(width - nodeRadius, otherNode.x)
+              );
+              otherNode.y = Math.max(
+                nodeRadius,
+                Math.min(height - nodeRadius, otherNode.y)
+              );
             }
           }
         });
@@ -86,7 +104,7 @@ const Graph = ({ papers, matrix, hoveredPaperIndex, originPaperIndex, onNodeClic
   const handleWheel = (e) => {
     e.preventDefault();
     const scaleFactor = e.deltaY > 0 ? 0.95 : 1.05;
-    setTransform(prev => ({
+    setTransform((prev) => ({
       ...prev,
       scale: Math.max(0.1, Math.min(10, prev.scale * scaleFactor)),
     }));
@@ -108,31 +126,38 @@ const Graph = ({ papers, matrix, hoveredPaperIndex, originPaperIndex, onNodeClic
     };
 
     const handleMouseUp = () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
     };
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
   };
 
   const calculateLineThickness = (strength) => {
     const minThickness = 1;
     const maxThickness = 5; // Reduced maximum thickness
-    const minStrength = Math.min(...edges.map(e => e.strength));
-    const maxStrength = Math.max(...edges.map(e => e.strength));
-    
-    return minThickness + ((strength - minStrength) / (maxStrength - minStrength)) * (maxThickness - minThickness);
+    const minStrength = Math.min(...edges.map((e) => e.strength));
+    const maxStrength = Math.max(...edges.map((e) => e.strength));
+
+    return (
+      minThickness +
+      ((strength - minStrength) / (maxStrength - minStrength)) *
+        (maxThickness - minThickness)
+    );
   };
 
   const wrapText = (text, maxWidth) => {
-    const words = text.split(' ');
+    const words = text.split(" ");
     const lines = [];
     let currentLine = words[0];
-  
+
     for (let i = 1; i < words.length; i++) {
       const word = words[i];
-      const lineWidth = getTextWidth(currentLine + " " + word, "14px sans-serif");
+      const lineWidth = getTextWidth(
+        currentLine + " " + word,
+        "14px sans-serif"
+      );
       if (lineWidth < maxWidth) {
         currentLine += " " + word;
       } else {
@@ -143,10 +168,10 @@ const Graph = ({ papers, matrix, hoveredPaperIndex, originPaperIndex, onNodeClic
     lines.push(currentLine);
     return lines;
   };
-  
+
   const getTextWidth = (text, font) => {
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
     context.font = font;
     return context.measureText(text).width;
   };
@@ -158,7 +183,7 @@ const Graph = ({ papers, matrix, hoveredPaperIndex, originPaperIndex, onNodeClic
   };
 
   return (
-    <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+    <div style={{ width: "100%", height: "100%", overflow: "hidden" }}>
       <svg
         ref={svgRef}
         width="100%"
@@ -166,18 +191,20 @@ const Graph = ({ papers, matrix, hoveredPaperIndex, originPaperIndex, onNodeClic
         viewBox="0 0 1600 1200"
         onWheel={handleWheel}
         onMouseDown={handleMouseDown}
-        style={{ cursor: 'move' }}
+        style={{ cursor: "move" }}
       >
         <defs>
           <filter id="glow">
-            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+            <feGaussianBlur stdDeviation="3" result="coloredBlur" />
             <feMerge>
-              <feMergeNode in="coloredBlur"/>
-              <feMergeNode in="SourceGraphic"/>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
         </defs>
-        <g transform={`translate(${transform.x},${transform.y}) scale(${transform.scale})`}>
+        <g
+          transform={`translate(${transform.x},${transform.y}) scale(${transform.scale})`}
+        >
           {edges.map((edge, index) => (
             <line
               key={index}
@@ -190,25 +217,37 @@ const Graph = ({ papers, matrix, hoveredPaperIndex, originPaperIndex, onNodeClic
             />
           ))}
           {nodes.map((node) => (
-            <g 
+            <g
               key={node.id}
               onMouseEnter={() => setHoveredNode(node.id)}
               onMouseLeave={() => setHoveredNode(null)}
               onClick={() => handleNodeClick(node.id)}
-              style={{ cursor: 'pointer' }}
+              style={{ cursor: "pointer" }}
             >
               <circle
                 cx={node.x}
                 cy={node.y}
                 r={node.authors.length * 15 + 30}
-                fill={node.id === originPaperIndex ? originColor : 
-                      (hoveredNode === node.id || hoveredPaperIndex === node.id) ? primaryColorHover : primaryColor}
+                fill={
+                  node.id === originPaperIndex
+                    ? originColor
+                    : hoveredNode === node.id || hoveredPaperIndex === node.id
+                    ? primaryColorHover
+                    : primaryColor
+                }
                 stroke={
-                  node.id === originPaperIndex ? originColor :
-                  (hoveredNode === node.id || hoveredPaperIndex === node.id) ? primaryColorHover : "transparent"
+                  node.id === originPaperIndex
+                    ? originColor
+                    : hoveredNode === node.id || hoveredPaperIndex === node.id
+                    ? primaryColorHover
+                    : "transparent"
                 }
                 strokeWidth="3"
-                filter={(hoveredNode === node.id || hoveredPaperIndex === node.id) ? "url(#glow)" : "none"}
+                filter={
+                  hoveredNode === node.id || hoveredPaperIndex === node.id
+                    ? "url(#glow)"
+                    : "none"
+                }
               />
               <text
                 x={node.x}
@@ -216,18 +255,24 @@ const Graph = ({ papers, matrix, hoveredPaperIndex, originPaperIndex, onNodeClic
                 textAnchor="middle"
                 dominantBaseline="central"
                 fontSize="14"
-                fontWeight={(hoveredNode === node.id || hoveredPaperIndex === node.id) ? "bold" : "normal"}
+                fontWeight={
+                  hoveredNode === node.id || hoveredPaperIndex === node.id
+                    ? "bold"
+                    : "normal"
+                }
                 fill="white"
               >
-                {wrapText(node.name, node.authors.length * 30 + 60).map((line, index) => (
-                  <tspan
-                    key={index}
-                    x={node.x}
-                    dy={index === 0 ? 0 : '1.2em'}
-                  >
-                    {line}
-                  </tspan>
-                ))}
+                {wrapText(node.name, node.authors.length * 30 + 60).map(
+                  (line, index) => (
+                    <tspan
+                      key={index}
+                      x={node.x}
+                      dy={index === 0 ? 0 : "1.2em"}
+                    >
+                      {line}
+                    </tspan>
+                  )
+                )}
               </text>
             </g>
           ))}
