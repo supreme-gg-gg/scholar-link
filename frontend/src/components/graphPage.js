@@ -2,19 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import Graph from "./graph";
 import ChatBotEmbed from "./chatbot";
-
-const StreamlitEmbed = () => {
-  return (
-    <div style={{ width: "100%", height: "100%" }}>
-      <iframe
-        src="http://localhost:8501"
-        width="100%"
-        height="100%"
-        frameBorder="0"
-      ></iframe>
-    </div>
-  );
-};
+import StreamlitEmbed from "./streamlit";
+import BarGraphEmbed from "./bargraph";
 
 const GraphPage = () => {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
@@ -257,6 +246,7 @@ const GraphPage = () => {
               matrix={matrix} 
               hoveredPaperIndex={hoveredPaperIndex}
               originPaperIndex={originPaperIndex}
+              onNodeClick={handleNodeClick}
             />
           )}
         </div>
@@ -285,7 +275,8 @@ const GraphPage = () => {
                   </a>
                 </div>
               </div>
-              <StreamlitEmbed />
+              {activeTab === "Research Activity" && <StreamlitEmbed />}
+              {activeTab === "Tab 3" && <BarGraphEmbed />}
             </div>
           </div>
         )}
@@ -310,7 +301,7 @@ const GraphPage = () => {
         >
           {/* Navbar */}
           <div className="p-4 border-b">
-            <h2 className="text-lg font-semibold text-black">AI Assistant</h2>
+            <h2 className="text-lg font-semibold text-black">AI Chatbot</h2>
           </div>
           {/* Scrollable content */}
           <div className="flex-grow overflow-y-auto">
