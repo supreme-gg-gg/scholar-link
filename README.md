@@ -38,6 +38,7 @@ cd frontend
 npm install
 pip install -r requirements.txt
 ```
+> You are recommended to use python venv instead of conda due to potential package conflicts!
 
 ### Service
 
