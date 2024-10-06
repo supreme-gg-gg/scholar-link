@@ -5,17 +5,15 @@ import ChatBotEmbed from "./chatbot";
 
 const StreamlitEmbed = () => {
   return (
-    <div style={{ width: "100%", height: "100%" }}>
+    <div className="w-full h-full bg-white p-4 rounded-lg shadow-md">
       <iframe
         src="http://localhost:8501"
-        width="100%"
-        height="100%"
-        frameBorder="0"
-      ></iframe>
+        className="w-full h-full border-0"
+        title="Streamlit Embed"
+      />
     </div>
   );
 };
-
 
 const GraphPage = () => {
   const [leftSidebarOpen, setLeftSidebarOpen] = useState(true);
@@ -28,10 +26,13 @@ const GraphPage = () => {
   const [allPapers, setAllPapers] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("Force Directed");
+  const [chatboxWidth, setChatboxWidth] = useState(320); // Initial width of the chatbox
+  const [isResizing, setIsResizing] = useState(false);
 
   const location = useLocation();
   const paperRefs = useRef({});
   const sidebarContentRef = useRef(null);
+  const resizeHandleRef = useRef(null);
 
   useEffect(() => {
     if (location.state && location.state.graphData) {
@@ -67,6 +68,29 @@ const GraphPage = () => {
     }
   }, [expandedPaper]);
 
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (isResizing) {
+        const newWidth = window.innerWidth - e.clientX;
+        setChatboxWidth(Math.max(200, Math.min(newWidth, 600))); // Limit width between 200px and 600px
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing]);
+
   const handleSetAsOrigin = async (index) => {
     try {
       const response = await fetch("http://localhost:5000/graph", {
@@ -86,7 +110,6 @@ const GraphPage = () => {
       setPapers(newGraphData.papers);
       setMatrix(newGraphData.matrix);
 
-      // Find the index of the new origin paper
       const newOriginIndex = newGraphData.papers.findIndex(
         (paper) => paper.index === allPapers[index].index
       );
@@ -102,7 +125,6 @@ const GraphPage = () => {
     setExpandedPaper(index);
     setLeftSidebarOpen(true);
   };
-
 
   const handleTabChange = (tabName) => {
     setActiveTab(tabName);
@@ -272,8 +294,18 @@ const GraphPage = () => {
         )}
       </div>
 
+      {/* Resize Handle */}
+      <div
+        ref={resizeHandleRef}
+        className="w-1 bg-gray-300 cursor-col-resize hover:bg-gray-400 transition-colors"
+        onMouseDown={() => setIsResizing(true)}
+      />
+
       {/* Right Sidebar (AI Chatbot) and Toggle Button */}
-      <div className="relative h-full flex flex-col">
+      <div 
+        className="relative h-full flex flex-col transition-all duration-300" 
+        style={{ width: rightSidebarOpen ? `${chatboxWidth}px` : '0' }}
+      >
         <button
           onClick={() => setRightSidebarOpen(!rightSidebarOpen)}
           className={`absolute top-1/2 -translate-y-1/2 transition-all duration-300 bg-white hover:bg-white p-2 rounded-l-md shadow-lg ${
@@ -285,9 +317,7 @@ const GraphPage = () => {
           </span>
         </button>
         <div
-          className={`bg-white transition-all duration-300 h-full ${
-            rightSidebarOpen ? "w-80" : "w-0"
-          } overflow-hidden shadow-lg flex flex-col`}
+          className={`bg-white h-full overflow-hidden shadow-lg flex flex-col`}
         >
           {/* Navbar */}
           <div className="p-4 border-b">
