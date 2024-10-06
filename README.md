@@ -6,14 +6,7 @@ _Hack the Valley 9._
 
 ## Background
 
-<div style="display: flex; align-items: center; padding: 10px;">
-    <div style="flex: 1; padding-right: 10px;">
-        <p>Research can be overwhelming. Our app revolutionizes the research process by leveraging cutting-edge AI to visualize connections between papers in a <em>force-directed graph</em>. This groundbreaking approach empowers researchers to effortlessly uncover intricate relationships, spot emerging trends, and gain profound insights that were previously hidden. By transforming complex data into intuitive visualizations, we are setting a new standard for academic research and discovery.</p>
-    </div>
-    <div style="flex: 1; text-align: center;">
-        <img src="resources/htv.jpeg" alt="HTV logo" style="max-width: 50%;">
-    </div>
-</div>
+Research can be overwhelming. Our app revolutionizes the research process by leveraging cutting-edge AI to visualize connections between papers in a **force-directed graph**. This groundbreaking approach empowers researchers to effortlessly uncover intricate relationships, spot emerging trends, and gain profound insights that were previously hidden. By transforming complex data into intuitive visualizations, we are setting a new standard for academic research and discovery.
 
 ## Features
 
